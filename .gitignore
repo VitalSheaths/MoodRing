@@ -1,0 +1,8 @@
+.venv
+.idea
+resources/.idea
+src/.idea
+.env
+Definitions
+resources
+src/CleanInstruction.md

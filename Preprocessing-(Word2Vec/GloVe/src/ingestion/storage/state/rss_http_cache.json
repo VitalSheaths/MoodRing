@@ -1,0 +1,20 @@
+{
+  "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml": {
+    "etag": null,
+    "last_modified": null,
+    "body_sha256": "093ca0ea7d618c3133ca38702c7d949df9f31718ddae1e63467c1b33c6d86e2f",
+    "updated_at": "2026-04-14T21:34:09.349752+00:00"
+  },
+  "https://feeds.bbci.co.uk/news/business/rss.xml": {
+    "etag": null,
+    "last_modified": null,
+    "body_sha256": "a01082bfbb1c68f697777f0e799110758a200083af4a718da2bfabdf81190e5b",
+    "updated_at": "2026-04-14T21:34:09.583456+00:00"
+  },
+  "https://huggingface.co/datasets/danidanou/Reuters_Financial_News/resolve/main/summ_financial_data.parquet.gzip": {
+    "etag": "\"e5f2d667a2b2d8a46f0b87bd423cf39f781e83ce2765ca7d4598cdd354eeeb37\"",
+    "last_modified": null,
+    "body_sha256": "360eb3c9fd76b00ee977b121917c777b21a7ab4115e1a03e715da489d04584d6",
+    "updated_at": "2026-08-15T03:32:53.555987+00:00"
+  }
+}
