@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from config.config import settings
 
-SRC_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SRC_DIR.parents[2]  # .../AppliedDL&NLP-Assignment-2
+SRC_DIR = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = SRC_DIR.parent
 
 RESOURCES_DIR = PROJECT_ROOT / "resources"
 GENERATED_DIR = RESOURCES_DIR / "generated_files"

@@ -74,11 +74,9 @@ class DecisionEngine:
         Evaluates risk gates, expected net edge, and bounded position sizing.
         """
         top_drivers = feature_metadata.get("top_drivers", []) if feature_metadata else []
-        is_stale = feature_metadata.get("is_stale", False) if feature_metadata else False
-        missing_ratio = feature_metadata.get("missing_ratio", 0.0) if feature_metadata else 0.0
 
         # 1. Stale Data Circuit Breaker
-        if is_stale or missing_ratio > 0.30:
+        if self.check_stale_data_circuit_breaker(feature_metadata):
             return {
                 "ticker": ticker,
                 "action": "PASS",
@@ -93,6 +91,13 @@ class DecisionEngine:
                 "reason_codes": top_drivers,
                 "trade_card": f"PASS | Circuit Breaker: Stale Data | Regime: {dominant_regime}",
             }
+
+        values = (prob_up, mu, var, trade_success_prob, drawdown_risk, regime_multiplier, current_price)
+        if (not all(math.isfinite(float(value)) for value in values)
+                or not 0 <= prob_up <= 1 or not 0 <= trade_success_prob <= 1
+                or var <= 0 or current_price <= 0 or regime_multiplier < 0):
+            return {"ticker": ticker, "action": "PASS", "reason": "INVALID_PREDICTION",
+                    "position_size": 0.0, "reason_codes": top_drivers}
 
         # 2. Expected Net Edge & Direction Gate
         expected_net_edge = float(mu - estimated_cost_drag)

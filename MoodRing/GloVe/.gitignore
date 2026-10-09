@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+.env.*
+!.env.example
+.DS_Store
+.Rhistory
+resources/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+market_cache.json
+market_cache.json.tmp

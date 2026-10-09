@@ -1,3 +1,9 @@
+> Implementation status (10 October 2026): the persistent stock paper-trading API,
+> independent scenarios, recorded orders/fills, quote polling and chronological
+> replay are now implemented. See [the implementation guide](../docs/PAPER_TRADING.md)
+> and [change notes](../docs/IMPLEMENTATION_CHANGES.md). The historical metrics below
+> remain research notes; they are not results from this paper-trading release.
+
 # System Architecture & Technical Specifications: Multimodal Feature Store, Multi-Head Risk Modeling & Paper Trading Engine
 
 ## Executive Summary & System Objectives

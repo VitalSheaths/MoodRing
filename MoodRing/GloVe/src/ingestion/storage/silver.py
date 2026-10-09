@@ -117,7 +117,7 @@ def create_technical_features_with_confidence(engine: Engine) -> None:
 SELECT
     ticker,
     trade_date,
-    created_at,
+    GREATEST(created_at, updated_at) AS created_at,
     rsi_14,
     macd,
     macd_signal,
@@ -137,21 +137,19 @@ FROM silver.returns_technical_features;
 def create_model_features_view_safe(engine: Engine) -> None:
     """
     Create unified view with lookahead-bias safeguards.
-    - Sorts by created_at (chronological).
-    - Includes confidence scores.
-    - Supports walk-forward validation by timestamp.
+    Uses the latest contributing row availability and the New York session close.
+    Consumers must filter prediction_time <= their explicit cutoff. Backfilled or
+    revised rows never acquire an invented historical availability timestamp.
     """
     sql = text("""
-    DROP VIEW IF EXISTS silver.returns_model_features CASCADE;
-
-    CREATE VIEW silver.returns_model_features AS
+    CREATE OR REPLACE VIEW silver.returns_model_features AS
     SELECT
         r.ticker,
         r.trade_date,
-        r.created_at AS features_created_at,
-        (r.trade_date + TIME '16:00:00')::timestamptz AS predicted_at,
-        (r.trade_date + TIME '16:00:00')::timestamptz AS prediction_time,
-        'v1.0' AS feature_version,
+        availability.available_at AS features_created_at,
+        availability.available_at AS predicted_at,
+        availability.available_at AS prediction_time,
+        'v2.0-asof' AS feature_version,
         r.close,
         r.log_return,
         COALESCE(r.log_return - spy.log_return, 0.0) AS rel_strength_spy,
@@ -173,20 +171,23 @@ def create_model_features_view_safe(engine: Engine) -> None:
             ELSE 'sideways'
         END AS market_regime,
         -- Confidence: 1.0 if past warmup, else 0.0
-        CASE 
-            WHEN ROW_NUMBER() OVER (PARTITION BY r.ticker ORDER BY r.trade_date) < 26 
-            THEN 0.0 
-            ELSE 1.0 
-        END AS feature_confidence,
+        COALESCE(t.feature_confidence, 0.0) AS feature_confidence,
         -- For walk-forward splits
         ROW_NUMBER() OVER (PARTITION BY r.ticker ORDER BY r.trade_date) AS observation_num
     FROM silver.returns_daily r
     LEFT JOIN silver.returns_daily spy
         ON spy.ticker = 'SPY' AND r.trade_date = spy.trade_date
-    LEFT JOIN silver.returns_technical_features t
+    LEFT JOIN silver.returns_technical_features_scored t
         ON r.ticker = t.ticker AND r.trade_date = t.trade_date
     LEFT JOIN silver.returns_volatility_features v
         ON r.ticker = v.ticker AND r.trade_date = v.trade_date
+    CROSS JOIN LATERAL (
+        SELECT GREATEST(
+            r.created_at, r.updated_at, spy.created_at, spy.updated_at,
+            t.created_at, v.created_at, v.updated_at,
+            ((r.trade_date + TIME '16:00:00') AT TIME ZONE 'America/New_York') + INTERVAL '1 second'
+        ) AS available_at
+    ) availability
     WHERE r.log_return IS NOT NULL
     ORDER BY r.ticker, r.trade_date, r.created_at;
     """)

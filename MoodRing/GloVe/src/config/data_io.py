@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from config.config import settings
-from paths import PARQUET_ROOT, ensure_dirs
+from config.paths import PARQUET_ROOT, ensure_dirs
 
 
 _ENGINE: Optional[Engine] = None

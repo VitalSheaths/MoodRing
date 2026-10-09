@@ -1,3 +1,8 @@
+> The calendar/analyzer class descriptions below are legacy design concepts and
+> are not implemented classes in this checkout. The implemented paper-trading
+> workflow and current file roles are documented in [the guide](../docs/PAPER_TRADING.md)
+> and [change notes](../docs/IMPLEMENTATION_CHANGES.md).
+
 1. EconomicCalendar
 Purpose: Central manager for the economic calendar — both recurring/scheduled events (NFP, CPI, ISM, etc.) and ad-hoc ingestion from external sources like RSS.
 Key parts:

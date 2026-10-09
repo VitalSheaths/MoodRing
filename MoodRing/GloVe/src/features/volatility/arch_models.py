@@ -13,6 +13,8 @@ class ArchConfig:
     eps: float = 1e-8
     min_scale: float = 1.0
     max_scale: float = 1000.0
+    min_obs: int = 60
+    window: int = 252
     scale_step: float = 0.1  # multiply y by this until in range
 
 
@@ -47,62 +49,42 @@ def auto_rescale(y: pd.Series, cfg: ArchConfig) -> tuple[np.ndarray, float, floa
 
 
 def fit_vol_models_for_group(df: pd.DataFrame, cfg: ArchConfig | None = None) -> pd.DataFrame:
+    """One-step forecasts fitted only to returns known at each row's close.
+
+    No full-sample parameter estimates are reused for historical feature rows.
+    Values remain in percent-return units, as in the existing volatility pipeline.
+    """
     cfg = cfg or ArchConfig()
-    out = df.copy().reset_index(drop=True)
-
-    y_raw = out["log_return_scaled"].fillna(0.0)
-    y_scaled, scale_factor, metric_before = auto_rescale(y_raw, cfg)
-
-    # diagnostics defaults
-    garch_aic = garch_bic = egarch_aic = egarch_bic = np.nan
-    garch_vol = pd.Series(np.nan, index=out.index, dtype=float)
-    egarch_vol = pd.Series(np.nan, index=out.index, dtype=float)
-    garch_ok = egarch_ok = False
-    garch_err = egarch_err = ""
-
-    # GARCH(1,1)
-    try:
-        am_g = arch_model(
-            y_scaled, mean=cfg.mean, vol="GARCH", p=cfg.p, q=cfg.q,
-            dist=cfg.dist, rescale=False
-        )
-        res_g = am_g.fit(disp="off")
-        garch_ok = True
-        garch_aic, garch_bic = res_g.aic, res_g.bic
-        # convert back to original units
-        garch_vol = pd.Series(np.asarray(res_g.conditional_volatility) / scale_factor, index=out.index)
-    except Exception as e:
-        garch_err = str(e)
-
-    # EGARCH(1,1)
-    try:
-        am_e = arch_model(
-            y_scaled, mean=cfg.mean, vol="EGARCH", p=cfg.p, q=cfg.q,
-            power=1.0, dist=cfg.dist, rescale=False
-        )
-        res_e = am_e.fit(disp="off")
-        egarch_ok = True
-        egarch_aic, egarch_bic = res_e.aic, res_e.bic
-        egarch_vol = pd.Series(np.asarray(res_e.conditional_volatility) / scale_factor, index=out.index)
-    except Exception as e:
-        egarch_err = str(e)
-
-    out["garch_vol"] = garch_vol.to_numpy()
-    out["egarch_vol"] = egarch_vol.to_numpy()
-
-    out["garch_aic"] = garch_aic
-    out["garch_bic"] = garch_bic
-    out["egarch_aic"] = egarch_aic
-    out["egarch_bic"] = egarch_bic
-
-    out["arch_scale_before"] = metric_before
-    out["arch_scale_factor"] = scale_factor
-    out["garch_fit_ok"] = garch_ok
-    out["egarch_fit_ok"] = egarch_ok
-    out["garch_fit_error"] = garch_err
-    out["egarch_fit_error"] = egarch_err
-    out["n_obs"] = len(out)
-
+    if cfg.min_obs < 2 or cfg.window < cfg.min_obs:
+        raise ValueError("window must be at least min_obs, and min_obs must be at least two")
+    out = df.sort_values("trade_date").copy().reset_index(drop=True)
+    records = []
+    for i in range(len(out)):
+        y = out["log_return_scaled"].iloc[max(0, i + 1 - cfg.window):i + 1].dropna()
+        scaled, factor, metric = auto_rescale(y, cfg)
+        row = {"arch_scale_before": metric, "arch_scale_factor": factor, "n_obs": len(y)}
+        for name, kind in (("garch", "GARCH"), ("egarch", "EGARCH")):
+            row.update({f"{name}_vol": np.nan, f"{name}_aic": np.nan, f"{name}_bic": np.nan,
+                        f"{name}_fit_ok": False, f"{name}_fit_error": "insufficient_history"})
+            if len(y) < cfg.min_obs:
+                continue
+            try:
+                model = arch_model(scaled, mean=cfg.mean, vol=kind, p=cfg.p, q=cfg.q,
+                                   dist=cfg.dist, rescale=False)
+                result = model.fit(disp="off")
+                if result.convergence_flag != 0:
+                    raise ValueError("ARCH fit did not converge")
+                variance = float(result.forecast(horizon=1, reindex=False).variance.iloc[-1, 0])
+                if not np.isfinite(variance) or variance <= 0:
+                    raise ValueError("Invalid forecast variance")
+                row.update({f"{name}_vol": np.sqrt(variance) / factor,
+                            f"{name}_aic": result.aic, f"{name}_bic": result.bic,
+                            f"{name}_fit_ok": True, f"{name}_fit_error": ""})
+            except Exception as exc:
+                row[f"{name}_fit_error"] = str(exc)
+        records.append(row)
+    for column in (records[0] if records else {}):
+        out[column] = [row[column] for row in records]
     return out
 
 

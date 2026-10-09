@@ -74,6 +74,7 @@ class HierarchicalSentimentResolver:
         self,
         news_items: List[Dict[str, Any]],
         prediction_time_iso: str,
+        target_ticker: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Aggregates daily news sentiment for a ticker.
@@ -88,36 +89,48 @@ class HierarchicalSentimentResolver:
         valid_sector_sentiments: list[float] = []
         valid_market_sentiments: list[float] = []
 
+        seen = set()
+        target_sector = self.SECTOR_MAPPING.get(target_ticker)
         for item in news_items:
             headline = item.get("headline") or item.get("title") or ""
             url = item.get("url") or item.get("link") or ""
 
-            # Check syndication deduplication
-            if self.is_syndicated_duplicate(headline, url):
-                continue
-
-            # Enforce 4-timestamp availability constraint: available_at <= prediction_time
+            # Availability is checked before dedupe; repeat calls/scenarios are independent.
             available_at_str = item.get("available_at") or item.get("published_at")
-            if available_at_str:
-                avail_dt = datetime.fromisoformat(str(available_at_str))
-                if avail_dt.tzinfo is None:
-                    avail_dt = avail_dt.replace(tzinfo=timezone.utc)
-                if avail_dt > pred_time:
-                    continue  # Strict data leakage prevention
+            if not available_at_str:
+                continue
+            known_times = [available_at_str] + [item[k] for k in
+                ("ingested_at", "feature_created_at") if item.get(k)]
+            available_times = []
+            for value in known_times:
+                dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                available_times.append(dt)
+            if max(available_times) > pred_time:
+                continue
+            key = self.compute_article_hash(headline, url)
+            ticker = item.get("ticker", "SPY")
+            entity_key = (key, ticker)
+            if entity_key in seen:
+                continue
+            seen.add(entity_key)
 
             base_score = float(item.get("finbert_score", 0.0))
             ticker = item.get("ticker", "SPY")
 
             routed = self.route_article_sentiment(base_score, ticker, headline)
-            valid_ticker_sentiments.append(routed["ticker_sentiment"])
-            valid_sector_sentiments.append(routed["sector_sentiment"])
+            if target_ticker is None or ticker == target_ticker:
+                valid_ticker_sentiments.append(routed["ticker_sentiment"])
+            if target_ticker is None or (target_sector is not None and routed["sector"] == target_sector):
+                valid_sector_sentiments.append(routed["sector_sentiment"])
             valid_market_sentiments.append(routed["market_sentiment"])
 
         # Preserve ticker missingness when no ticker news exists
         news_count = len(valid_ticker_sentiments)
         ticker_sentiment = float(np.mean(valid_ticker_sentiments)) if news_count > 0 else 0.0
-        sector_sentiment = float(np.mean(valid_sector_sentiments)) if news_count > 0 else 0.0
-        market_sentiment = float(np.mean(valid_market_sentiments)) if news_count > 0 else 0.0
+        sector_sentiment = float(np.mean(valid_sector_sentiments)) if valid_sector_sentiments else 0.0
+        market_sentiment = float(np.mean(valid_market_sentiments)) if valid_market_sentiments else 0.0
 
         return {
             "news_count": news_count,

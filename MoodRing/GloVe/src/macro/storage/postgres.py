@@ -56,15 +56,47 @@ CREATE TABLE IF NOT EXISTS silver.fred_observations (
     PRIMARY KEY (series_id, observation_date)
 );
 
-CREATE TABLE IF NOT EXISTS gold.macro_daily_features (
-    feature_date DATE NOT NULL,
-    ticker TEXT NOT NULL,
-    fomc_recent_flag BOOLEAN NOT NULL DEFAULT false,
-    fomc_hawk_minus_dove DOUBLE PRECISION NOT NULL DEFAULT 0.0,
-    earnings_within_3d BOOLEAN NOT NULL DEFAULT false,
-    insider_net_buy_value DOUBLE PRECISION NOT NULL DEFAULT 0.0,
-    PRIMARY KEY (feature_date, ticker)
-);
+-- Conservative availability for legacy records: when they entered this database.
+ALTER TABLE silver.fomc_communications ADD COLUMN IF NOT EXISTS available_at TIMESTAMPTZ;
+UPDATE silver.fomc_communications SET available_at = created_at WHERE available_at IS NULL;
+ALTER TABLE silver.fomc_communications ALTER COLUMN available_at SET DEFAULT now();
+ALTER TABLE silver.fomc_communications ALTER COLUMN available_at SET NOT NULL;
+ALTER TABLE silver.earnings_events ADD COLUMN IF NOT EXISTS available_at TIMESTAMPTZ;
+UPDATE silver.earnings_events SET available_at = created_at WHERE available_at IS NULL;
+ALTER TABLE silver.earnings_events ALTER COLUMN available_at SET DEFAULT now();
+ALTER TABLE silver.earnings_events ALTER COLUMN available_at SET NOT NULL;
+ALTER TABLE silver.insider_trades ADD COLUMN IF NOT EXISTS available_at TIMESTAMPTZ;
+UPDATE silver.insider_trades SET available_at = created_at WHERE available_at IS NULL;
+ALTER TABLE silver.insider_trades ALTER COLUMN available_at SET DEFAULT now();
+ALTER TABLE silver.insider_trades ALTER COLUMN available_at SET NOT NULL;
+ALTER TABLE silver.fred_observations ADD COLUMN IF NOT EXISTS available_at TIMESTAMPTZ;
+UPDATE silver.fred_observations SET available_at = created_at WHERE available_at IS NULL;
+ALTER TABLE silver.fred_observations ALTER COLUMN available_at SET DEFAULT now();
+ALTER TABLE silver.fred_observations ALTER COLUMN available_at SET NOT NULL;
+
+-- Corrections cannot silently keep their old historical availability.
+CREATE OR REPLACE FUNCTION silver.track_macro_availability() RETURNS trigger AS $$
+BEGIN
+    IF (to_jsonb(NEW) - 'available_at' - 'created_at') IS DISTINCT FROM
+       (to_jsonb(OLD) - 'available_at' - 'created_at') THEN
+        NEW.available_at := GREATEST(NEW.available_at, now());
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS macro_availability ON silver.fomc_communications;
+CREATE TRIGGER macro_availability BEFORE UPDATE ON silver.fomc_communications
+    FOR EACH ROW EXECUTE FUNCTION silver.track_macro_availability();
+DROP TRIGGER IF EXISTS macro_availability ON silver.earnings_events;
+CREATE TRIGGER macro_availability BEFORE UPDATE ON silver.earnings_events
+    FOR EACH ROW EXECUTE FUNCTION silver.track_macro_availability();
+DROP TRIGGER IF EXISTS macro_availability ON silver.insider_trades;
+CREATE TRIGGER macro_availability BEFORE UPDATE ON silver.insider_trades
+    FOR EACH ROW EXECUTE FUNCTION silver.track_macro_availability();
+DROP TRIGGER IF EXISTS macro_availability ON silver.fred_observations;
+CREATE TRIGGER macro_availability BEFORE UPDATE ON silver.fred_observations
+    FOR EACH ROW EXECUTE FUNCTION silver.track_macro_availability();
+
 """
 
 

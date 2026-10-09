@@ -32,7 +32,11 @@ async def run_once() -> None:
     ON CONFLICT (comm_id) DO UPDATE SET
         text = EXCLUDED.text,
         hawkish_score = EXCLUDED.hawkish_score,
-        dovish_score = EXCLUDED.dovish_score
+        dovish_score = EXCLUDED.dovish_score,
+        available_at = now()
+    WHERE silver.fomc_communications.text IS DISTINCT FROM EXCLUDED.text
+       OR silver.fomc_communications.hawkish_score IS DISTINCT FROM EXCLUDED.hawkish_score
+       OR silver.fomc_communications.dovish_score IS DISTINCT FROM EXCLUDED.dovish_score
     """)
 
     with engine.begin() as conn:

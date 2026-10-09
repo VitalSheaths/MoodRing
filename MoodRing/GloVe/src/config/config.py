@@ -26,7 +26,7 @@ class Settings:
 
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
-        "postgresql+psycopg2://geetgrover:pass@localhost:5432/postgres",
+        "postgresql+psycopg2://localhost/postgres",
     )
     PARQUET_ROOT: str = os.getenv("PARQUET_ROOT", "resources/generated_files/parquet")
 
