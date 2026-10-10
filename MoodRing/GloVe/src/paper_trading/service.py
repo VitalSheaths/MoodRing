@@ -24,6 +24,14 @@ class PaperTradingError(ValueError):
     status_code = 400
 
 
+class SignalExpiredError(PaperTradingError):
+    pass
+
+
+class PositionExistsError(PaperTradingError):
+    pass
+
+
 class NotFoundError(PaperTradingError):
     status_code = 404
 
@@ -198,7 +206,7 @@ class PaperTradingService:
         if available_at > cutoff or cutoff > now:
             raise PaperTradingError('Features must be available at or before prediction time, which cannot be in the future')
         if (now - cutoff).total_seconds() > policy.signal_max_age_s:
-            raise PaperTradingError('Prediction has expired')
+            raise SignalExpiredError('Prediction has expired')
         metadata = {'hours_since_update': (now - available_at).total_seconds() / 3600,
                     'missing_ratio': prediction.get('missing_ratio', 0), 'top_drivers': prediction.get('top_drivers', [])}
         engine = DecisionEngine(stale_threshold_hours=policy.feature_max_age_s / 3600,
@@ -287,7 +295,7 @@ class PaperTradingService:
                 logger.warning('Market data validation failed', exc_info=True)
                 raise NoPriceDataError('Market data temporarily unavailable') from exc
             if timestamp(signal['expires_at']) < now:
-                raise PaperTradingError('Signal has expired')
+                raise SignalExpiredError('Signal has expired')
             latest_at = connection.execute(select(db.quotes.c.quote_at).where(
                 db.quotes.c.ticker == quote.ticker)).scalar_one_or_none()
             if latest_at is not None and quote.quote_at < timestamp(latest_at):
@@ -299,7 +307,7 @@ class PaperTradingService:
             if state['valuation_is_stale']:
                 raise NoPriceDataError('Refresh all open positions before sizing a new entry')
             if any(p['ticker'] == signal['ticker'] for p in state['positions']):
-                raise PaperTradingError('This scenario already has an open position in this ticker')
+                raise PositionExistsError('This scenario already has an open position in this ticker')
             # Prevent retries with a different key from duplicating a signal after its position exits.
             used = connection.execute(select(db.trades.c.id).where(db.trades.c.signal_id == signal_id)).first()
             if used:

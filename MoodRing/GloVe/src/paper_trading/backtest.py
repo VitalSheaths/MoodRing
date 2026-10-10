@@ -1,9 +1,8 @@
 """Chronological replay using the SAME ledger and risk policy as paper trading."""
-from datetime import timedelta
-from decimal import Decimal
+from collections import Counter
 
 from paper_trading.market import Quote, timestamp
-from paper_trading.service import PaperTradingService, PaperTradingError
+from paper_trading.service import PaperTradingService, PaperTradingError, SignalExpiredError, PositionExistsError
 from paper_trading.storage import PaperStore, make_engine
 
 
@@ -30,7 +29,16 @@ class BacktestEngine:
             scenario = service.create_scenario('replay', 'Backtest', initial_capital, config, model_version, research=research)
             scenario_id = scenario['id']
             pending, skipped = [], []
-            predictions = sorted(signals, key=lambda row: timestamp(row['prediction']['prediction_time']))
+            outcomes = [{'input_index': i, 'ticker': item['ticker'], 'status': 'never_eligible',
+                         'reason': 'Prediction time is after the last price event'}
+                        for i, item in enumerate(signals)]
+            predictions = sorted(enumerate(signals), key=lambda pair: timestamp(pair[1]['prediction']['prediction_time']))
+
+            def reject(outcome, exc):
+                outcome.update(status=('expired' if isinstance(exc, SignalExpiredError) else
+                                       'position_exists' if isinstance(exc, PositionExistsError) else 'rejected'),
+                               reason=str(exc))
+                skipped.append(dict(outcome))
             index = 0
             for bar in ordered:
                 clock[0] = timestamp(bar['timestamp'])
@@ -38,18 +46,29 @@ class BacktestEngine:
                                    for symbol, price in bar['prices'].items()}
                 service.refresh_prices('replay')
                 # Signals observed on an earlier bar fill on a later event, never at an already-known exit.
-                for signal in pending:
+                for signal, outcome in pending:
                     try:
-                        service.execute_trade('replay', signal['id'], None, f"replay:{signal['id']}")
+                        if timestamp(signal['expires_at']) < clock[0]:
+                            raise SignalExpiredError('Signal has expired')
+                        trade = service.execute_trade('replay', signal['id'], None, f"replay:{signal['id']}")
+                        outcome.update(status='traded', reason=None, trade_id=trade['id'])
                     except PaperTradingError as exc:
-                        skipped.append({'signal_id': signal['id'], 'reason': str(exc)})
+                        reject(outcome, exc)
                 pending = []
-                while index < len(predictions) and timestamp(predictions[index]['prediction']['prediction_time']) <= clock[0]:
-                    item = predictions[index]
+                while index < len(predictions) and timestamp(predictions[index][1]['prediction']['prediction_time']) <= clock[0]:
+                    input_index, item = predictions[index]
+                    outcome = outcomes[input_index]
                     try:
-                        pending.append(service.publish_signal('replay', scenario_id, item['ticker'], item['prediction']))
+                        signal = service.publish_signal('replay', scenario_id, item['ticker'], item['prediction'])
+                        outcome['signal_id'] = signal['id']
+                        if signal['decision_json']['action'] != 'BUY':
+                            outcome.update(status='not_tradeable', reason=signal['decision_json'].get('reason', 'PASS'))
+                            skipped.append(dict(outcome))
+                        else:
+                            outcome.update(status='no_later_event', reason='No subsequent price event to attempt a fill')
+                            pending.append((signal, outcome))
                     except PaperTradingError as exc:
-                        skipped.append({'ticker': item['ticker'], 'reason': str(exc)})
+                        reject(outcome, exc)
                     index += 1
             final = service.get_scenario('replay', scenario_id)
             history = service.scenario_history('replay', scenario_id, limit=100000)
@@ -61,6 +80,7 @@ class BacktestEngine:
                         'unrealized_pnl': state['unrealized_pnl'], 'positions': state['positions'],
                         'total_return_pct': state['total_return_pct'], 'trades': history['trades'],
                         'equity_curve': list(reversed(history['equity'])), 'skipped': skipped,
-                        'unfilled_signal_count': len(pending) + len(predictions) - index}}
+                        'signal_outcomes': outcomes, 'signal_status_counts': dict(Counter(o['status'] for o in outcomes)),
+                        'unfilled_signal_count': sum(o['status'] != 'traded' for o in outcomes)}}
         finally:
             engine.dispose()
