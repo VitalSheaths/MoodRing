@@ -4,8 +4,7 @@
 
 A beginner-oriented stock simulator built around independent strategy scenarios.
 Each scenario keeps its own cash, open positions, trade history and equity curve.
-Orders use indicative market quotes and simulated fees and slippage. Existing
-news, technical, volatility and macro research pipelines remain under `src/`.
+Prices may be delayed. Trading costs are simulated, and no real orders are placed.
 
 ## Run locally
 
@@ -19,8 +18,8 @@ PYTHONPATH=src python -m api.server
 ```
 
 Open [API docs](http://127.0.0.1:8000/docs). Authenticate with `Authorization:
-Bearer YOUR_SECRET`. The API starts on `127.0.0.1:8000`; the paper ledger defaults
-to SQLite and is persisted across restarts. The research pipelines need PostgreSQL.
+Bearer YOUR_SECRET`. The API starts on `127.0.0.1:8000`; your simulated
+portfolio is saved across restarts. Keep the server local.
 
 For a complete example without network access or market hours:
 
@@ -29,10 +28,8 @@ PYTHONPATH=src python examples/paper_demo.py
 python -m pytest -q
 ```
 
-See [paper trading guide](docs/PAPER_TRADING.md) for the routes, accounting,
-risk rules, quote timestamps, historical replay, and deployment limitations.
-See [implementation changes](docs/IMPLEMENTATION_CHANGES.md) for the changes to
-existing files and the Postgres migration procedure.
+See the [usage guide](docs/PAPER_TRADING.md) for a complete walkthrough.
+See [verification results](docs/REVIEW_FIXES.md) for what has been checked.
 
 Track limitations and acceptance evidence in [YAML tickets](docs/tickets/README.md).
 Quotes are polled and potentially delayed; no real-time delivery guarantee is provided.

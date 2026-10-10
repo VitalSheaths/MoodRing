@@ -1,15 +1,24 @@
-# MoodRing — paper trading learning project
+# MoodRing
+
+Learn the basics of stock trading with virtual money.
 
 **Work in progress. Not production-ready. Local use only.**
 
-MoodRing combines research code with a stock paper-trading API. The simulator
-persists independent scenario portfolios, simulated orders/fills, positions,
-fees, realized/unrealized P&L and equity history. No real orders are submitted.
-There is no beginner dashboard or validated automated model-to-trade pipeline yet.
+## What you can try
 
-## Run the implemented simulator
+- Run separate trading scenarios with their own virtual balances.
+- Open and close simulated stock positions.
+- Follow cash, holdings, profit and loss over time.
+- Compare scenarios and see how trading costs affect results.
+- Replay historical prices without placing real orders.
 
-Commands start at this repository’s root. Python **3.11** is the documented environment.
+The current version is an API and an offline demo. A beginner dashboard and
+validated automated predictions are still planned. Market quotes may be delayed
+or unavailable; continuous real-time updates are not guaranteed.
+
+## Run locally
+
+From the repository root, using Python 3.11:
 
 ```bash
 cd MoodRing/GloVe
@@ -17,44 +26,29 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 cp .env.example .env
-# Replace the example bearer secret in PAPER_API_USERS_JSON before starting.
+# Set your own random secret in PAPER_API_USERS_JSON inside .env.
 PYTHONPATH=src python -m api.server
 ```
 
-Open http://127.0.0.1:8000/docs. The API uses a static bearer-token map for local
-learning. Public hosting requires managed identity, token rotation, TLS,
-rate limiting and audit logging; these are open tickets. Quotes from yfinance
-are indicative, polled and potentially delayed, with no guaranteed real-time SLA.
-Provider outages can prevent entries/exits; existing positions retain their marks.
+Open [API docs](http://127.0.0.1:8000/docs) and authenticate with your bearer secret.
+Keep the server local; public hosting is not supported yet.
 
-## Demonstrate and verify
+## Try the demo and tests
 
-From `MoodRing/GloVe`, with the environment active:
+With the same environment active:
 
 ```bash
 PYTHONPATH=src python examples/paper_demo.py
 python -m pytest -q
-# Optional: a disposable server with permission to create/drop test databases.
-PAPER_TEST_POSTGRES_URL='postgresql+psycopg2://USER@HOST/postgres' python -m pytest -q
 ```
 
-The deterministic demo exercises scenario creation, entry, price updates and exit
-without network access. Ordinary tests mock market data. Five PostgreSQL integration
-tests skip unless the test database URL is supplied. A green local run is evidence
-for the tested behavior, not production readiness or verified market performance.
+The demo works without internet access. Database integration tests need separate
+setup and skip by default; see the verification guide below.
 
-## Project status and navigation
+## Follow the project
 
-- [Simulator setup](MoodRing/GloVe/README.md) and [API/accounting guide](MoodRing/GloVe/docs/PAPER_TRADING.md).
-- [Review fixes and verification](MoodRing/GloVe/docs/REVIEW_FIXES.md).
-- [YAML ticket backlog](MoodRing/GloVe/docs/tickets/README.md): open work, closed acceptance evidence and reopening rules.
-- [Implementation notes](MoodRing/GloVe/docs/IMPLEMENTATION_CHANGES.md).
-- Research modules live in `MoodRing/GloVe/src/`: ingestion, features, macro,
-  sentiment, models and experiments. The paper subsystem is `src/paper_trading/`;
-  HTTP routes are `src/api/server.py`. Research paths require additional data,
-  PostgreSQL and ML dependencies beyond the simulator installation.
-- Architecture and usage notes under `MoodRing/GloVe/src/` contain research goals
-  and legacy descriptions. Historical metrics are not validated platform results.
+- [Usage guide](MoodRing/GloVe/docs/PAPER_TRADING.md)
+- [Verification results](MoodRing/GloVe/docs/REVIEW_FIXES.md)
+- [Open and completed tickets](MoodRing/GloVe/docs/tickets/README.md)
 
-The project is intended to teach cash, exposure, fees, risk gates and portfolio
-lifecycles. It does not claim profitable trading, production security or deployment readiness.
+This is a learning simulator. It uses virtual money and does not submit real trades.

@@ -1,0 +1,19 @@
+id: MR-013
+type: defect
+priority: P2
+status: closed
+title: Keep public READMEs focused on learner use
+invariant: Public READMEs explain user capabilities, setup and limitations without requiring internal
+  design knowledge.
+current: Documentation included research module lists and implementation details that distract from the
+  learner use case.
+proposed: Use plain feature descriptions and short setup steps; keep technical details in linked documentation.
+acceptance:
+- Main README explains virtual money, scenarios, simulated trades and current limitations.
+- Root and subsystem READMEs omit architecture names and internal module inventories.
+affected_files:
+- README.md (repository root)
+- MoodRing/GloVe/README.md
+evidence:
+- Reviewed both README texts against learner-focused acceptance criteria; setup commands preserved.
+reopened_when: Internal design claims displace basic user guidance or readiness claims become misleading.

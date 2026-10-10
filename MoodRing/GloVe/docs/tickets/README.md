@@ -18,6 +18,7 @@ Creating an issue from a form does not automatically synchronize these records.
 | [MR-010](MR-010.yml) | P2 | open | Validate automated prediction input and research provenance |
 | [MR-011](MR-011.yml) | P2 | open | Specify market-data freshness and update guarantees |
 | [MR-012](MR-012.yml) | P2 | open | Adopt scoped changes and ticket-linked review |
+| [MR-013](MR-013.yml) | P2 | closed | Keep public READMEs focused on learner use |
 
 ## Working rules
 
