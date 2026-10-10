@@ -54,4 +54,6 @@ tracked in [tickets](tickets/README.md).
   local scope and authenticated scenario creation returns 201. Temporary ledger only.
 - Offline demo: two independently sized positions mark upward and close with net
   profits $9.37 and $18.74 after simulated costs. This is deterministic demonstration data.
-- GitHub workflow verification is tracked separately in MR-004.
+- GitHub workflow for `c3975d8` completed successfully, including the configured
+  PostgreSQL checks and offline demo: [hosted run](https://github.com/VitalSheaths/MoodRing/actions/runs/38018685001).
+  MR-004 is closed with this revision-specific evidence.
