@@ -1,0 +1,19 @@
+id: MR-008
+type: architecture
+priority: P1
+status: open
+title: Reproduce reported nonworking behavior
+invariant: A runtime failure report must identify command, environment, expected behavior and trace.
+current: User reports project not working; baseline offline tests pass, root setup instructions were incorrect.
+proposed: Use corrected setup and capture a reproducible failure; validate real quote access separately
+  from mocked tests.
+acceptance:
+- Record failing command and sanitized trace or confirmed corrected workflow.
+- Verify provider behavior during market hours and outage conditions.
+affected_files:
+- README.md (repository root)
+- src/paper_trading/market.py
+evidence:
+- Documented module starts in clean Python 3.11 environment; health and authenticated scenario creation pass over HTTP.
+- Offline entry/mark/exit demo passes; original reported failure and live provider behavior remain unverified.
+reopened_when: null

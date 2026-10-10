@@ -1,0 +1,18 @@
+id: MR-001
+type: defect
+priority: P1
+status: closed
+title: Correct misleading readiness and setup documentation
+invariant: Public claims must match implemented and verified behavior.
+current: Root README claimed production-grade and gave paths not present at repository root.
+proposed: Replace readiness/metrics claims; document correct nested working directory and local-only scope.
+acceptance:
+- Root and subsystem READMEs label work in progress and local-only use.
+- Setup points to MoodRing/GloVe; unsupported performance badges and external project references are removed.
+affected_files:
+- README.md (repository root)
+- MoodRing/GloVe/README.md
+- docs/IMPLEMENTATION_CHANGES.md
+evidence:
+- Documentation review; API readiness assertion in tests/test_review_market.py
+reopened_when: Acceptance criteria fail or new reproducible evidence contradicts closure.

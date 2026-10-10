@@ -1,0 +1,16 @@
+id: MR-009
+type: architecture
+priority: P2
+status: open
+title: Build beginner scenario dashboard
+invariant: Learners must see cash, equity, exposure, costs and stale quotes across scenarios.
+current: Current product is API and offline demonstration; no beginner UI exists.
+proposed: Build a small authenticated dashboard using scenario state/history/comparison endpoints.
+acceptance:
+- Entry/mark/exit can be followed through the UI.
+- Stale values and simulation-only behavior are clearly visible.
+affected_files:
+- frontend (not implemented)
+- src/api/server.py
+evidence: []
+reopened_when: null

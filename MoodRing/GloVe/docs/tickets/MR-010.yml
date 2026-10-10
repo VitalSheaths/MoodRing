@@ -1,0 +1,17 @@
+id: MR-010
+type: architecture
+priority: P2
+status: open
+title: Validate automated prediction input and research provenance
+invariant: Automated decisions must use a validated checkpoint and causal feature/calibration versions.
+current: Manual predictions are supported; production model-to-signal orchestration is not validated.
+proposed: Define checkpoint, dataset, feature and calibration manifest and causal inference adapter.
+acceptance:
+- Replay/live feature cutoffs agree.
+- Every automated signal has reproducible version metadata and calibrated outputs.
+affected_files:
+- src/models/
+- src/features/
+- src/paper_trading/service.py
+evidence: []
+reopened_when: null

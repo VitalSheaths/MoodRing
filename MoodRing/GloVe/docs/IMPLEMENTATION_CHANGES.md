@@ -111,8 +111,10 @@ PAPER_TEST_POSTGRES_URL='postgresql+psycopg2://USER@HOST/postgres' python -m pyt
 PYTHONPATH=src python examples/paper_demo.py
 ```
 
-The full suite passed 40 tests on Python 3.11, including five tests against a
-fresh disposable PostgreSQL server. The offline entry/mark/exit demonstration
+During the initial implementation, 40 tests passed on Python 3.11, including
+five tests against a disposable PostgreSQL server. This is historical local
+verification, not a claim about every environment or GitHub CI. Without
+PAPER_TEST_POSTGRES_URL, the five database tests skip. The offline entry/mark/exit demonstration
 also ran successfully. The installed scientific stack emitted Matplotlib/
 Pyparsing deprecation warnings; no test failures remained.
 
@@ -123,8 +125,7 @@ entry/mark/exit. The test URL must allow creating temporary test databases.
 
 ## GitHub notes and remaining scope
 
-The [reference README](https://github.com/Mattbusel/Reddit-Options-Trader-ROT-/blob/222a6cd4/README.md) is design context, not a source of copied platform code,
-performance figures or security/test badges. These changes do not include live
+These changes do not include live
 broker execution, a frontend dashboard, paid tiers, Monte Carlo or autonomous
 agents. They provide a runnable API and learning/research lifecycle whose state
 survives restarts. Yfinance polling is explicitly indicative and potentially
@@ -132,6 +133,6 @@ delayed. Automated prediction generation needs a separately validated checkpoint
 feature transformation and calibration bundle before it can feed this API.
 
 Generated ledgers, market-cache files, environments and Python caches are ignored.
-No git commit or remote push is performed by this implementation. The dependency
+See REVIEW_FIXES.md for subsequent review changes and verification. The dependency
 files cover the new subsystem and its checks; the original neural-network/news
 research scripts may require additional packages such as Torch and feedparser.

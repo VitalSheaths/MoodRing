@@ -1,5 +1,7 @@
 # MoodRing paper trading
 
+**Work in progress. Not production-ready. Local learning use only.**
+
 A beginner-oriented stock simulator built around independent strategy scenarios.
 Each scenario keeps its own cash, open positions, trade history and equity curve.
 Orders use indicative market quotes and simulated fees and slippage. Existing
@@ -31,3 +33,6 @@ See [paper trading guide](docs/PAPER_TRADING.md) for the routes, accounting,
 risk rules, quote timestamps, historical replay, and deployment limitations.
 See [implementation changes](docs/IMPLEMENTATION_CHANGES.md) for the changes to
 existing files and the Postgres migration procedure.
+
+Track limitations and acceptance evidence in [YAML tickets](docs/tickets/README.md).
+Quotes are polled and potentially delayed; no real-time delivery guarantee is provided.

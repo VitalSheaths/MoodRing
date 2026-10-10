@@ -1,0 +1,16 @@
+id: MR-007
+type: architecture
+priority: P2
+status: open
+title: Add privacy-aware audit events
+invariant: Sensitive portfolio mutations must have an attributable audit trail without secrets.
+current: Trade history exists but security and identity actions have no dedicated audit logging.
+proposed: Define structured authentication, authorization and mutation events with retention/redaction.
+acceptance:
+- Authentication failures and trade mutations are logged with correlation identifiers.
+- Tests prove bearer secrets and provider credentials are excluded.
+affected_files:
+- src/api/server.py
+- src/paper_trading/service.py
+evidence: []
+reopened_when: null

@@ -1,0 +1,15 @@
+id: MR-005
+type: architecture
+priority: P1
+status: open
+title: Replace local token map before public hosting
+invariant: Public identities must be revocable, rotated and bound to secure authenticated sessions.
+current: Static environment bearer-token map has no identity lifecycle or automatic rotation.
+proposed: Design managed identity and revocation/rotation, preserving scenario ownership.
+acceptance:
+- Revoked and rotated tokens cannot access private records.
+- Authorization tests cover cross-user records and identity lifecycle.
+affected_files:
+- src/api/server.py
+evidence: []
+reopened_when: null

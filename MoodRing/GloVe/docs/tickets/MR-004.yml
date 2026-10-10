@@ -1,0 +1,18 @@
+id: MR-004
+type: architecture
+priority: P1
+status: open
+title: Verify clean installation and GitHub database CI
+invariant: A supported clean Python environment must reproduce checks, including PostgreSQL tests.
+current: Existing local environment passes tests; dependency ranges and hosted CI need independent evidence.
+proposed: Add GitHub Actions with Python 3.11 and disposable PostgreSQL; close only after hosted run passes.
+acceptance:
+- Fresh dependency installation succeeds.
+- Hosted suite includes all five PostgreSQL tests and offline demo.
+affected_files:
+- requirements-dev.txt
+- .github/workflows/paper-trading.yml
+evidence:
+- Clean Python 3.11 environment installed requirements-dev.txt successfully.
+- Clean environment suite passed 44 tests including five PostgreSQL checks; hosted result still pending.
+reopened_when: null

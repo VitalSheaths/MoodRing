@@ -1,0 +1,91 @@
+name: Structural Change
+description: Change to types, ownership, state transitions, synchronization, or module boundaries.
+labels: ["architecture"]
+body:
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Governing invariant
+      description: |
+        The property the system must satisfy before AND after this change.
+        This is the fixed point — everything else moves around it.
+      placeholder: "e.g., Every GPU command recorded in a frame must have its resource dependencies visible to the
+  graph at compile time."
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current design
+      description: |
+        Reduce to: entities, state, transitions, constraints, failure modes.
+        Why does the current design violate or fail to enforce the invariant?
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraint_analysis
+    attributes:
+      label: Constraint function analysis
+      description: |
+        For each constraint touched by this change:
+        - Remove it → what becomes trivial or unsafe?
+        - Strengthen it → what becomes impossible or degenerate?
+        This reveals why the constraint exists and what it protects.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed design
+      description: |
+        Concrete types, fields, ownership edges, state machines.
+        Specify what is introduced, removed, or reoriented.
+        Must be expressible as a state machine or graph — if it can't be drawn, it's not understood.
+    validations:
+      required: true
+
+  - type: textarea
+    id: representation
+    attributes:
+      label: Representation
+      description: |
+        Express the change in at least two of:
+        1. Spatial / topological model
+        2. Graph structure (connectivity, cuts, bridges)
+        3. State machine (states, transitions, illegal moves)
+        4. Symbolic / formal model
+        If the spatial model contradicts the symbolic one, the symbolic model is wrong.
+    validations:
+      required: false
+
+  - type: textarea
+    id: system_properties
+    attributes:
+      label: System properties after change
+      description: |
+        What is now compile-time enforced vs runtime checked?
+        What serialization, concurrency, or information flow properties change?
+        What failure modes are eliminated vs introduced?
+    validations:
+      required: false
+
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected files
+      description: In dependency order. Specify what changes in each.
+    validations:
+      required: false
+
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and failure impact
+      description: |
+        Implications for: memory safety, resource lifetime, synchronization correctness, error propagation.
+        What is the cost of getting this wrong?
+    validations:
+      required: false

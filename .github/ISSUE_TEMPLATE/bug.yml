@@ -1,0 +1,72 @@
+name: Defect
+description: The system violates a property that must hold.
+labels: ["defect"]
+body:
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Violated invariant
+      description: |
+        The property the system must satisfy but currently does not.
+        State it as a predicate, not a symptom.
+      placeholder: "e.g., Every submitted PassCommand must reference a ResourceId that was declared in the same
+  FrameGraph."
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: |
+        What the system actually does.
+        Include the state transition path that triggers the violation.
+      placeholder: |
+        1. State before: ...
+        2. Transition: ...
+        3. State after (violating): ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: failure_class
+    attributes:
+      label: Failure class
+      options:
+        - Safety (UB, use-after-free, data race)
+        - Correctness (wrong result, violated contract)
+        - Resource (leak, exhaustion, starvation)
+        - Performance (latency, throughput degradation)
+        - Liveness (deadlock, livelock, stall)
+    validations:
+      required: true
+
+  - type: textarea
+    id: boundary
+    attributes:
+      label: System boundary
+      description: |
+        Which module or subsystem boundary does this cross?
+        What is inside vs outside the failure?
+      placeholder: "e.g., Failure is inside core/exec — executor trusts PassDecl invariants that frame.rs does not
+  enforce."
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraint
+    attributes:
+      label: Missing or weak constraint
+      description: |
+        What constraint, if present and enforced, would make this failure impossible?
+        Remove it — what becomes unsafe. Strengthen it — what becomes impossible.
+    validations:
+      required: false
+
+  - type: textarea
+    id: traces
+    attributes:
+      label: Logs / traces / validation output
+      render: text
+    validations:
+      required: false
