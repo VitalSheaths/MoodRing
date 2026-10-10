@@ -13,3 +13,4 @@ resources/
 *.sqlite-wal
 market_cache.json
 market_cache.json.tmp
+docs/tickets
