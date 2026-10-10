@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import timedelta
 from decimal import Decimal, ROUND_DOWN
 import threading
+import logging
 from functools import wraps
 from uuid import uuid4
 
@@ -14,6 +15,9 @@ from engine.decision_engine import DecisionEngine
 from paper_trading.market import Quote, timestamp, ticker_symbol, utcnow
 from paper_trading.policy import ScenarioPolicy, decimal, money
 from paper_trading import schema as db
+
+
+logger = logging.getLogger(__name__)
 
 
 class PaperTradingError(ValueError):
@@ -95,7 +99,8 @@ class PaperTradingService:
                 raise ValueError('Provider returned a mismatched ticker')
             return quote.require_fresh(self.clock(), policy.quote_max_age_s)
         except Exception as exc:
-            raise NoPriceDataError(str(exc)) from exc
+            logger.warning('Market data validation or lookup failed', exc_info=True)
+            raise NoPriceDataError('Market data temporarily unavailable') from exc
 
     def _save_quote(self, connection, quote):
         dialect = connection.dialect.name
@@ -279,7 +284,8 @@ class PaperTradingService:
             try:
                 quote.require_fresh(now, policy.quote_max_age_s)
             except ValueError as exc:
-                raise NoPriceDataError(str(exc)) from exc
+                logger.warning('Market data validation failed', exc_info=True)
+                raise NoPriceDataError('Market data temporarily unavailable') from exc
             if timestamp(signal['expires_at']) < now:
                 raise PaperTradingError('Signal has expired')
             latest_at = connection.execute(select(db.quotes.c.quote_at).where(
@@ -375,7 +381,8 @@ class PaperTradingService:
                 if quote.ticker != position['ticker'] or quote.quote_at < timestamp(position['quote_at']):
                     raise ValueError('Exit quote does not match the position or is out of order')
             except ValueError as exc:
-                raise NoPriceDataError(str(exc)) from exc
+                logger.warning('Market data validation failed', exc_info=True)
+                raise NoPriceDataError('Market data temporarily unavailable') from exc
             price = (quote.price * (1 - decimal(policy.slippage_bps) / 10000)).quantize(Decimal('0.00000001'))
             gross = money(price * position['quantity'])
             fee = money(gross * decimal(policy.commission_bps) / 10000)
@@ -447,7 +454,8 @@ class PaperTradingService:
         try:
             fetched = self.quote_provider.get_quotes(symbols)
         except Exception as exc:
-            raise NoPriceDataError(f'Quote refresh failed: {exc}') from exc
+            logger.warning('Quote refresh failed', exc_info=True)
+            raise NoPriceDataError('Market data temporarily unavailable') from exc
         valid = {}
         stale_or_missing = []
         for symbol in symbols:

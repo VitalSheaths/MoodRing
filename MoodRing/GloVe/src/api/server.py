@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager, suppress
 from datetime import datetime
 from decimal import Decimal
 import json
+import logging
 import os
 from pathlib import Path
 import secrets
@@ -22,6 +23,9 @@ from paper_trading.market import CachedQuoteProvider, MarketEnricher, YFinanceQu
 from paper_trading.policy import ScenarioPolicy
 from paper_trading.service import NoPriceDataError, PaperTradingError, PaperTradingService
 from paper_trading.storage import PaperStore, make_engine
+
+
+logger = logging.getLogger(__name__)
 
 
 class StrictModel(BaseModel):
@@ -125,7 +129,7 @@ def create_app(database_url=None, quote_provider=None, users=None, enable_checke
                     await task
             engine.dispose()
 
-    app = FastAPI(title='MoodRing Paper Trading', version='0.1.0', lifespan=lifespan)
+    app = FastAPI(title='MoodRing Paper Trading', version='0.1.0', description='Work in progress. Local learning simulator; not production-ready. Static bearer authentication is unsuitable for public hosting.', lifespan=lifespan)
     app.state.users, app.state.paper_trading_service = token_map, service
     app.state.price_checker, app.state.market_enricher = checker, market
 
@@ -135,7 +139,7 @@ def create_app(database_url=None, quote_provider=None, users=None, enable_checke
 
     @app.get('/health')
     def health():
-        return {'status': 'ok', 'simulation_only': True, 'price_checker_enabled': enabled,
+        return {'status': 'ok', 'simulation_only': True, 'production_ready': False, 'deployment_scope': 'local_learning', 'price_checker_enabled': enabled,
                 'last_refresh': checker.last_result, 'price_checker_has_error': checker.last_error is not None}
 
     @app.post('/api/v1/scenarios', status_code=201)
@@ -188,7 +192,8 @@ def create_app(database_url=None, quote_provider=None, users=None, enable_checke
         try:
             quotes = provider.get_quotes(symbols)
         except Exception as exc:
-            raise NoPriceDataError(f'Quote lookup failed: {exc}') from exc
+            logger.warning('Quote lookup failed', exc_info=True)
+            raise NoPriceDataError('Market data temporarily unavailable') from exc
         result = {}
         for symbol in symbols:
             if symbol not in quotes:
@@ -196,7 +201,8 @@ def create_app(database_url=None, quote_provider=None, users=None, enable_checke
             try:
                 quote = quotes[symbol].require_fresh(service.clock(), 900)
             except ValueError as exc:
-                raise NoPriceDataError(str(exc)) from exc
+                logger.warning('Quote validation failed', exc_info=True)
+                raise NoPriceDataError('Market data temporarily unavailable') from exc
             result[symbol] = {'price': quote.price, 'quote_at': quote.quote_at, 'fetched_at': quote.fetched_at,
                               'source': quote.source, 'currency': quote.currency, 'indicative': True}
         return {'quotes': result}
@@ -207,7 +213,11 @@ def create_app(database_url=None, quote_provider=None, users=None, enable_checke
             ticker = ticker_symbol(ticker)
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        return market.get_metadata(ticker)
+        try:
+            return market.get_metadata(ticker)
+        except Exception as exc:
+            logger.warning('Metadata lookup failed', exc_info=True)
+            raise NoPriceDataError('Market data temporarily unavailable') from exc
 
     @app.post('/api/v1/backtest/run', status_code=201)
     def run_backtest(body: BacktestRequest, user: User):
