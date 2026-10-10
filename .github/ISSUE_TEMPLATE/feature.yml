@@ -1,0 +1,92 @@
+name: Feature Proposal
+description: Propose a new capability for MoodRing's research or paper-trading workflows.
+labels: ["feature"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Feature objective
+      description: |
+        What should MoodRing be able to do that it cannot do today?
+        State the user, researcher, or paper-trading operation concretely.
+      placeholder: "e.g., Allow users to compare the equity curves and drawdowns of two saved scenarios."
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_gap
+    attributes:
+      label: Current gap
+      description: |
+        Why is this not possible today? Identify the missing data, feature,
+        model output, API route, persistence, state transition, or information flow.
+      placeholder: "e.g., The service stores scenario history but has no comparison operation or response model."
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Proposed workflow
+      description: |
+        Describe the end-to-end flow, including ingestion, feature generation,
+        model inference, decision gates, paper execution, backtesting, persistence,
+        or API interaction as applicable.
+      placeholder: |
+        Input -> feature/model calculation -> risk policy -> scenario ledger -> comparison output
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_design
+    attributes:
+      label: Proposed design
+      description: |
+        Describe the concrete modules, tables, API requests/responses, configuration,
+        model interfaces, and state transitions needed. Include compatibility and
+        migration requirements where relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints_and_safety
+    attributes:
+      label: Constraints and safety requirements
+      description: |
+        Explain how the feature preserves timestamp alignment, prevents look-ahead leakage,
+        keeps scenarios isolated, handles stale or missing data, and remains simulation-only.
+        Include validation, authorization, and reproducibility requirements.
+    validations:
+      required: false
+
+  - type: textarea
+    id: success_criteria
+    attributes:
+      label: Success criteria and failure modes
+      description: |
+        Define measurable acceptance criteria, expected outputs, and new failure modes.
+        Include the constraint, validation, or user feedback that should prevent each failure.
+    validations:
+      required: false
+
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected files and modules
+      description: List expected files or directories in dependency order and describe each change.
+      placeholder: |
+        - src/paper_trading/service.py - ...
+        - src/api/server.py - ...
+        - docs/... - ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: validation_plan
+    attributes:
+      label: Validation plan
+      description: |
+        List unit, integration, API, backtest, data-quality, or model-evaluation
+        checks that should demonstrate the feature works without changing existing behavior.
+    validations:
+      required: false

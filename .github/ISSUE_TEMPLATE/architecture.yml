@@ -1,74 +1,70 @@
-name: Structural Change
-description: Change to types, ownership, state transitions, synchronization, or module boundaries.
+name: Architecture Change
+description: Propose a change to MoodRing's data, model, paper-trading, or service architecture.
 labels: ["architecture"]
 body:
   - type: textarea
-    id: invariant
+    id: objective
     attributes:
-      label: Governing invariant
+      label: Architectural objective
       description: |
-        The property the system must satisfy before AND after this change.
-        This is the fixed point — everything else moves around it.
-      placeholder: "e.g., Every GPU command recorded in a frame must have its resource dependencies visible to the
-  graph at compile time."
+        What user, research, or paper-trading capability should this change enable?
+        State the property that must remain true before and after the change.
+      placeholder: "e.g., Every paper-trading decision must be reproducible from the timestamped prediction and quote data used at decision time."
     validations:
       required: true
 
   - type: textarea
-    id: current
+    id: current_design
     attributes:
-      label: Current design
+      label: Current architecture
       description: |
-        Reduce to: entities, state, transitions, constraints, failure modes.
-        Why does the current design violate or fail to enforce the invariant?
+        Describe the relevant data sources, pipelines, services, models, storage, state transitions,
+        and current constraints. Explain what is difficult or insufficient today.
     validations:
       required: true
 
   - type: textarea
-    id: constraint_analysis
+    id: data_flow
     attributes:
-      label: Constraint function analysis
+      label: Data and decision flow
       description: |
-        For each constraint touched by this change:
-        - Remove it → what becomes trivial or unsafe?
-        - Strengthen it → what becomes impossible or degenerate?
-        This reveals why the constraint exists and what it protects.
+        Trace the proposed flow from ingestion through features, prediction, decision gates,
+        paper execution, persistence, and monitoring. Include timestamps, ownership, and
+        boundaries between PostgreSQL, SQLite, APIs, and in-memory model state where relevant.
+      placeholder: |
+        Source -> Bronze/Silver/Gold -> features -> model prediction -> risk gates -> paper trade -> ledger
     validations:
       required: true
 
   - type: textarea
-    id: proposed
+    id: proposed_design
     attributes:
-      label: Proposed design
+      label: Proposed architecture
       description: |
-        Concrete types, fields, ownership edges, state machines.
-        Specify what is introduced, removed, or reoriented.
-        Must be expressible as a state machine or graph — if it can't be drawn, it's not understood.
+        Describe the concrete modules, tables, API routes, model interfaces, configuration,
+        state transitions, and ownership changes. Specify what is added, removed, or reoriented.
+        Include compatibility and migration requirements.
     validations:
       required: true
 
   - type: textarea
-    id: representation
+    id: risk_and_constraints
     attributes:
-      label: Representation
+      label: Risk, data integrity, and constraints
       description: |
-        Express the change in at least two of:
-        1. Spatial / topological model
-        2. Graph structure (connectivity, cuts, bridges)
-        3. State machine (states, transitions, illegal moves)
-        4. Symbolic / formal model
-        If the spatial model contradicts the symbolic one, the symbolic model is wrong.
+        Explain how the change preserves timestamp alignment, prevents look-ahead leakage,
+        handles stale or missing market data, protects scenario isolation, and keeps paper
+        trading simulation-only. Identify constraints that must be enforced.
     validations:
       required: false
 
   - type: textarea
-    id: system_properties
+    id: interfaces
     attributes:
-      label: System properties after change
+      label: Interfaces and observability
       description: |
-        What is now compile-time enforced vs runtime checked?
-        What serialization, concurrency, or information flow properties change?
-        What failure modes are eliminated vs introduced?
+        List changed API contracts, schemas, configuration variables, experiment metadata,
+        logs, metrics, and failure responses. State which failures are eliminated or introduced.
     validations:
       required: false
 
@@ -76,16 +72,20 @@ body:
     id: affected
     attributes:
       label: Affected files
-      description: In dependency order. Specify what changes in each.
+      description: List files or directories in dependency order and describe the expected change in each.
+      placeholder: |
+        - src/paper_trading/service.py - ...
+        - src/features/... - ...
     validations:
       required: false
 
   - type: textarea
-    id: safety
+    id: validation
     attributes:
-      label: Safety and failure impact
+      label: Validation plan
       description: |
-        Implications for: memory safety, resource lifetime, synchronization correctness, error propagation.
-        What is the cost of getting this wrong?
+        Describe unit tests, integration tests, backtest comparisons, data-quality checks,
+        model metrics, and paper-trading scenarios that should demonstrate correctness.
     validations:
       required: false
+

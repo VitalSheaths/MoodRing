@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: MoodRing Discussions
+    url: https://github.com/VitalSheaths/MoodRing/discussions
+    about: Discuss research workflows, model behavior, paper-trading scenarios, and proposed improvements.
+  - name: MoodRing Documentation
+    url: https://github.com/VitalSheaths/MoodRing#readme
+    about: Review setup, API usage, architecture, and paper-trading limitations before opening an issue.

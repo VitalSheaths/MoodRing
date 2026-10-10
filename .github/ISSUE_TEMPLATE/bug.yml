@@ -1,16 +1,15 @@
-name: Defect
-description: The system violates a property that must hold.
-labels: ["defect"]
+name: Bug Report
+description: Report incorrect behavior in MoodRing's data, model, paper-trading, or API workflows.
+labels: ["bug"]
+
 body:
   - type: textarea
-    id: invariant
+    id: expected_behavior
     attributes:
-      label: Violated invariant
+      label: Expected behavior
       description: |
-        The property the system must satisfy but currently does not.
-        State it as a predicate, not a symptom.
-      placeholder: "e.g., Every submitted PassCommand must reference a ResourceId that was declared in the same
-  FrameGraph."
+        What should the system do? State the expected property or result precisely.
+      placeholder: "e.g., A stale quote must prevent a new paper trade and return a clear error."
     validations:
       required: true
 
@@ -19,54 +18,81 @@ body:
     attributes:
       label: Observed behavior
       description: |
-        What the system actually does.
-        Include the state transition path that triggers the violation.
+        What actually happened? Include the data, prediction, quote, state transition,
+        API response, metric, or persisted record that demonstrates the problem.
       placeholder: |
-        1. State before: ...
-        2. Transition: ...
-        3. State after (violating): ...
+        1. Initial state or input: ...
+        2. Pipeline, model, route, or transition: ...
+        3. Incorrect output or persisted state: ...
     validations:
       required: true
 
   - type: dropdown
-    id: failure_class
+    id: subsystem
     attributes:
-      label: Failure class
+      label: Affected subsystem
       options:
-        - Safety (UB, use-after-free, data race)
-        - Correctness (wrong result, violated contract)
-        - Resource (leak, exhaustion, starvation)
-        - Performance (latency, throughput degradation)
-        - Liveness (deadlock, livelock, stall)
+        - Data ingestion or timestamp alignment
+        - Feature engineering or sentiment
+        - Model training, inference, or calibration
+        - Decision engine or risk gates
+        - Paper-trading ledger or accounting
+        - Backtesting or experiment evaluation
+        - API, authentication, or storage
+        - Monitoring or configuration
     validations:
       required: true
 
   - type: textarea
-    id: boundary
+    id: reproduction
     attributes:
-      label: System boundary
+      label: Reproduction steps
       description: |
-        Which module or subsystem boundary does this cross?
-        What is inside vs outside the failure?
-      placeholder: "e.g., Failure is inside core/exec — executor trusts PassDecl invariants that frame.rs does not
-  enforce."
+        Provide the smallest reproducible command, request, dataset, ticker, scenario,
+        or sequence of events. Include relevant dates and environment details.
+      placeholder: |
+        1. Run: ...
+        2. Send request or input: ...
+        3. Observe: ...
     validations:
       required: true
 
   - type: textarea
-    id: constraint
+    id: impact
     attributes:
-      label: Missing or weak constraint
+      label: Impact and failure class
       description: |
-        What constraint, if present and enforced, would make this failure impossible?
-        Remove it — what becomes unsafe. Strengthen it — what becomes impossible.
+        Describe the impact on data integrity, leakage prevention, model validity,
+        scenario isolation, accounting, paper-trading safety, or API availability.
+      placeholder: "Correctness: the saved backtest result differs from the chronological replay."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Data and run context
+      description: |
+        Include model version, dataset or feature version, ticker(s), scenario or backtest ID,
+        prediction and feature timestamps, quote timestamps, operating system, and Python version
+        when available. Do not include credentials or other secrets.
     validations:
       required: false
 
   - type: textarea
-    id: traces
+    id: evidence
     attributes:
-      label: Logs / traces / validation output
+      label: Logs, traces, or validation output
       render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: suspected_cause
+    attributes:
+      label: Suspected cause or missing constraint
+      description: |
+        If known, identify the module, boundary, assumption, or missing validation
+        that permits the failure. Otherwise leave this blank.
     validations:
       required: false
