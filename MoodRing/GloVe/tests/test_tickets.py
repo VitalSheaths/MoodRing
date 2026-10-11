@@ -9,6 +9,10 @@ def test_public_issue_forms_and_links():
     forms = root / '.github/ISSUE_TEMPLATE'
     for path in forms.glob('*.yml'):
         form = yaml.safe_load(path.read_text())
+        if path.name == 'config.yml':
+            assert isinstance(form['blank_issues_enabled'], bool)
+            assert all(link['url'].startswith('https://') for link in form.get('contact_links', []))
+            continue
         assert form['name'] and form['description'] and form['body']
         ids = [field['id'] for field in form['body'] if 'id' in field]
         assert len(ids) == len(set(ids))
