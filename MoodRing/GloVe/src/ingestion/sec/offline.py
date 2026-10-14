@@ -56,6 +56,8 @@ class Checkpoint(Contract):
                 base = seen.get(f'sec_edgar:{filing.amends_accession}')
                 if base is None or base.cik != filing.cik or base.form.removesuffix('/A') != filing.form.removesuffix('/A'):
                     raise ValueError('Checkpoint amendments need a matching earlier base')
+                if base.report_period is not None and filing.report_period is not None and base.report_period != filing.report_period:
+                    raise ValueError('Amendment report period differs from its base')
                 if filing.provenance.available_at < base.provenance.available_at:
                     raise ValueError('Amendment availability cannot precede its base')
             seen[filing.source_key] = filing
@@ -130,6 +132,8 @@ def run_batch(path: Path, universe: UniverseManifest, checkpoint: Checkpoint | N
                 else:
                     base = known.get(f'sec_edgar:{filing.amends_accession}')
                     if base and (base.filing.cik != filing.cik or base.filing.form.removesuffix('/A') != filing.form.removesuffix('/A')
+                                 or (base.filing.report_period is not None and filing.report_period is not None
+                                     and base.filing.report_period != filing.report_period)
                                  or filing.provenance.available_at < base.filing.provenance.available_at):
                         event = Outcome(line=index, status='quarantined', reason='conflicting_amendment_base', source_key=key)
                     else:

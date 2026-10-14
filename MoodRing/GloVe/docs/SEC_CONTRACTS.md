@@ -25,7 +25,7 @@ retain their dashed format. Accession submitter prefixes need not match the issu
 CIK. URLs must match the issuer/archive/accession/document path. The initial forms
 are 10-K, 10-Q, 8-K and their `/A` amendments. Other forms are rejected in v1.
 
-An amendment requires a known base accession of the same issuer and filing family.
+An amendment requires a known base accession of the same issuer and filing family, with matching report periods when both are known.
 Unresolved base relationships produce a retryable outcome. Original evidence is
 retained alongside later amendments. No inferred replacement of an entire filing
 or partial XBRL restatement is performed.

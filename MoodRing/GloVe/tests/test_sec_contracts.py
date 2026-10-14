@@ -183,3 +183,15 @@ def test_record_limit_does_not_allow_an_unbounded_fixture_run(monkeypatch):
     monkeypatch.setattr(offline,'MAX_RECORDS',2)
     with pytest.raises(ValueError,match='record limit'):
         run_batch(FIXTURES/'filings.jsonl',universe(),batch_size=100)
+
+
+def test_amendment_cannot_link_a_different_reporting_period(tmp_path):
+    records=[json.loads(line) for line in (FIXTURES/'filings.jsonl').read_text().splitlines()[:2]]
+    records[1]['envelope']['filing']['report_period']='2026-06-30'
+    path=tmp_path/'wrong-period.jsonl'; path.write_text('\n'.join(json.dumps(r) for r in records)+'\n')
+    state,events=run_batch(path,universe())
+    assert len(state.records)==1 and events[1].reason=='conflicting_amendment_base'
+    good,_=run_batch(FIXTURES/'filings.jsonl',universe(),batch_size=2)
+    snapshot=good.model_dump(mode='json'); snapshot['records'][1]['filing']['report_period']='2026-06-30'
+    with pytest.raises(ValidationError,match='report period'):
+        Checkpoint.model_validate(snapshot)
