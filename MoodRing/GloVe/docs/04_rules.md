@@ -18,14 +18,9 @@ implementation/evidence; they must not silently redefine approved scope.
 
 A ticket ID or priority label does not determine execution order. Map a substantial
 issue to the approved phase, prerequisites, acceptance checklist and evidence
-before implementing it. Publish issues one at a time for maintainer review.
+before implementing it. Keep issue scope independently reviewable.
 Do not create issues for documentation-only changes, README edits or small refactors.
-Do not publish internal ticket YAML or scratch plans as public issue attachments.
-
-Existing public authentication work belongs to deployment hardening. Its presence
-in the issue list does not authorize it ahead of the local workflow, contracts
-and validated research adapters. Do not close completed internal notes as public
-issues retroactively merely to increase completed-issue counts.
+Keep private planning records outside public issue attachments.
 
 ## Incremental phases
 
