@@ -1,0 +1,16 @@
+{
+  "schema_version": "sec-contract-v1",
+  "universe_version": "synthetic-two-company-v1",
+  "members": [
+    {
+      "ticker": "DEMO",
+      "cik": "123",
+      "effective_from": "2026-01-01T00:00:00Z"
+    },
+    {
+      "ticker": "SAMPLE",
+      "cik": "456",
+      "effective_from": "2026-01-01T00:00:00Z"
+    }
+  ]
+}
