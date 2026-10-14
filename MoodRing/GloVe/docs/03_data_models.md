@@ -111,3 +111,12 @@ indexes and restart semantics require an approved workload/contract; none are
 introduced by this documentation commit.
 
 Related: [PRD](01_prd.md), [architecture](02_architecture.md), [rules](04_rules.md).
+
+## SEC contract increment
+
+The reviewed issue #4 increment defines `sec-contract-v1` under
+`src/ingestion/sec/`: versioned universe membership, filing and payload provenance,
+optional supplied Decimal facts, revision links and bounded offline checkpoints.
+See [SEC contracts](SEC_CONTRACTS.md) for field rules, deterministic replay,
+source eligibility and the future adapter boundary. This adds no ledger or research
+database migration. Live downloads and catalyst feature calculation remain planned.
