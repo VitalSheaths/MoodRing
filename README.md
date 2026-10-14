@@ -51,4 +51,12 @@ setup and skip by default; see the verification guide below.
 - [Verification results](MoodRing/GloVe/docs/REVIEW_FIXES.md)
 - [Open and completed tickets](MoodRing/GloVe/docs/tickets/README.md)
 
+## Contributor documentation
+
+- [Product scope](MoodRing/GloVe/docs/01_prd.md)
+- [Technical design](MoodRing/GloVe/docs/02_architecture.md)
+- [Data contracts](MoodRing/GloVe/docs/03_data_models.md)
+- [Delivery rules](MoodRing/GloVe/docs/04_rules.md)
+- [Contributor instructions](.github/copilot-instructions.md) and [Git workflow](MoodRing/GloVe/docs/GIT_WORKFLOW.md)
+
 This is a learning simulator. It uses virtual money and does not submit real trades.

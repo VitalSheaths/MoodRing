@@ -7,3 +7,6 @@ Definitions
 resources
 src/CleanInstruction.md
 MoodRing/GloVe/docs/tickets
+
+# Private scratch plan; public specifications live in MoodRing/GloVe/docs.
+.github/workflows/plan.md
