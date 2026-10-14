@@ -31,5 +31,6 @@ python -m pytest -q
 See the [usage guide](docs/PAPER_TRADING.md) for a complete walkthrough.
 See [verification results](docs/REVIEW_FIXES.md) for what has been checked.
 
-Track limitations and acceptance evidence in [YAML tickets](docs/tickets/README.md).
+Track work in [open issues](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aopen)
+and [completed issues](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aclosed).
 Quotes are polled and potentially delayed; no real-time delivery guarantee is provided.

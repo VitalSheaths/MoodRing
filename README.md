@@ -49,7 +49,17 @@ setup and skip by default; see the verification guide below.
 
 - [Usage guide](MoodRing/GloVe/docs/PAPER_TRADING.md)
 - [Verification results](MoodRing/GloVe/docs/REVIEW_FIXES.md)
-- [Open and completed tickets](MoodRing/GloVe/docs/tickets/README.md)
+## Open and completed tickets
+
+[![Open Issues](https://img.shields.io/github/issues/VitalSheaths/MoodRing)](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aopen)
+[![Closed Issues](https://img.shields.io/github/issues-closed/VitalSheaths/MoodRing)](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aclosed)
+
+- [Open tickets](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aopen)
+- [Completed tickets](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aclosed)
+- [#1: Replace local token authentication before public hosting](https://github.com/VitalSheaths/MoodRing/issues/1)
+
+Issues are created one at a time for review. A closed issue indicates completed
+acceptance work; closed internal notes are not automatically published as issues.
 
 ## Contributor documentation
 
