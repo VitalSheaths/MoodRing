@@ -86,3 +86,11 @@ merge. Documentation-only work needs a focused PR, not a new issue ticket.
 
 Related: [architecture](02_architecture.md), [data contracts](03_data_models.md),
 [execution rules](04_rules.md), [current usage](PAPER_TRADING.md).
+
+## Reviewed contract increments
+
+SEC filing contracts are implemented separately from live filing ingestion. Issue #6
+adds offline [SIC/security-universe contracts](UNIVERSE_CONTRACTS.md) and synthetic
+validation. These contracts do not claim real top-100 selection, a complete PIT
+archive, public data rights or live market coverage. The next selector/provider
+increment requires its own reviewed policy and scope.

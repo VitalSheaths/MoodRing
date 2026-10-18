@@ -120,3 +120,12 @@ optional supplied Decimal facts, revision links and bounded offline checkpoints.
 See [SEC contracts](SEC_CONTRACTS.md) for field rules, deterministic replay,
 source eligibility and the future adapter boundary. This adds no ledger or research
 database migration. Live downloads and catalyst feature calculation remain planned.
+
+## SIC and security-universe contract increment
+
+The issue #6 increment adds `universe-contract-v1` in `src/ingestion/universe/`:
+stable issuer/instrument identity, dated symbol mappings and SIC assignments,
+explicit ranking-policy inputs, immutable membership snapshots and rights declarations.
+It reuses SEC CIK/time validation. See [universe contracts](UNIVERSE_CONTRACTS.md)
+for precision, provenance, coverage checks, fixture-only policy parameters and
+limitations. A real selector, persisted master and live OHLC integration remain planned.
