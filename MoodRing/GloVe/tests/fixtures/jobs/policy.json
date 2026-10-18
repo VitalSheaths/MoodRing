@@ -1,0 +1,45 @@
+{
+  "data_kind": "synthetic",
+  "limits": {
+    "max_instruments": 6,
+    "max_date_span": 31,
+    "max_pages_per_instrument": 3,
+    "max_records_per_page": 2,
+    "max_total_records": 12,
+    "max_attempts": 5,
+    "max_retries_per_page": 2,
+    "max_continuation_depth": 2,
+    "max_checkpoint_bytes": 2000000,
+    "max_steps": 20
+  },
+  "series": [
+    {
+      "role": "equity",
+      "required": true
+    },
+    {
+      "role": "index",
+      "required": true
+    },
+    {
+      "role": "reference",
+      "required": false
+    },
+    {
+      "role": "unsupported",
+      "required": false
+    },
+    {
+      "role": "retry",
+      "required": false
+    },
+    {
+      "role": "quarantine",
+      "required": false
+    }
+  ],
+  "coverage_basis": "active_lifetime",
+  "allow_partial": false,
+  "lease_seconds": 60,
+  "backoff_seconds": 5
+}
