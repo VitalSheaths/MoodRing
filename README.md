@@ -51,6 +51,8 @@ setup and skip by default; see the verification guide below.
 - [Verification results](MoodRing/GloVe/docs/REVIEW_FIXES.md)
 - [Open and completed tickets](MoodRing/GloVe/docs/tickets/README.md)
 
+- [SEC ingestion contracts issue](https://github.com/VitalSheaths/MoodRing/issues/4)
+
 ## Contributor documentation
 
 - [Product scope](MoodRing/GloVe/docs/01_prd.md)
