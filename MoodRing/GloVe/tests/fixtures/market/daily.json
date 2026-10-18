@@ -1,0 +1,146 @@
+{
+  "data_kind": "synthetic",
+  "description": "Fictional prices and provider; finite illustrative calendar schedule only.",
+  "calendar": {
+    "calendar_id": "fixture-equity",
+    "calendar_version": "fixture-2026-v1",
+    "timezone": "America/New_York",
+    "mode": "regular",
+    "valid_from": "2026-03-06",
+    "valid_until": "2026-03-09",
+    "non_sessions": [
+      "2026-03-07",
+      "2026-03-08"
+    ],
+    "sessions": [
+      {
+        "calendar_id": "fixture-equity",
+        "calendar_version": "fixture-2026-v1",
+        "timezone": "America/New_York",
+        "mode": "regular",
+        "session_date": "2026-03-06",
+        "opens_at": "2026-03-06T14:30:00Z",
+        "closes_at": "2026-03-06T21:00:00Z"
+      },
+      {
+        "calendar_id": "fixture-equity",
+        "calendar_version": "fixture-2026-v1",
+        "timezone": "America/New_York",
+        "mode": "regular",
+        "session_date": "2026-03-09",
+        "opens_at": "2026-03-09T13:30:00Z",
+        "closes_at": "2026-03-09T20:00:00Z"
+      }
+    ]
+  },
+  "observation": {
+    "instrument": {
+      "instrument_id": "stock:example",
+      "issuer_id": "issuer:example",
+      "display_name": "Fictional Example Company",
+      "kind": "common_stock",
+      "country": "US",
+      "currency": "USD",
+      "measure_unit": "currency",
+      "status": "active",
+      "tradable": true,
+      "effective_from": "2020-01-01T00:00:00Z",
+      "evidence": {
+        "source": "fake",
+        "dataset_version": "synthetic-v1",
+        "source_ref": "fixture:identity",
+        "payload_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "available_at": "2020-01-01T00:00:00Z",
+        "ingested_at": "2020-01-02T00:00:00Z"
+      }
+    },
+    "mapping": {
+      "mapping_id": "alias:new",
+      "instrument_id": "stock:example",
+      "provider": "fake",
+      "symbol": "NEW",
+      "mic": "XNAS",
+      "effective_from": "2026-03-09T00:00:00Z",
+      "evidence": {
+        "source": "fake",
+        "dataset_version": "synthetic-v1",
+        "source_ref": "fixture:identity",
+        "payload_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "available_at": "2020-01-01T00:00:00Z",
+        "ingested_at": "2020-01-02T00:00:00Z"
+      }
+    },
+    "session": {
+      "calendar_id": "fixture-equity",
+      "calendar_version": "fixture-2026-v1",
+      "timezone": "America/New_York",
+      "mode": "regular",
+      "session_date": "2026-03-09",
+      "opens_at": "2026-03-09T13:30:00Z",
+      "closes_at": "2026-03-09T20:00:00Z"
+    },
+    "receipt": {
+      "provider": "fake",
+      "feed": "synthetic-daily",
+      "dataset_version": "synthetic-v1",
+      "request_ref": "request:one",
+      "parameters": {
+        "instrument_id": "stock:example",
+        "mapping_id": "alias:new",
+        "symbol": "NEW",
+        "adjustment": "raw",
+        "window": {
+          "start": "2026-03-06",
+          "end": "2026-03-09",
+          "start_inclusive": true,
+          "end_inclusive": true,
+          "calendar_id": "fixture-equity",
+          "calendar_version": "fixture-2026-v1",
+          "cutoff": "2026-03-09T20:01:00Z",
+          "leap_day_policy": "clamp_feb28"
+        },
+        "limit": 2
+      },
+      "requested_at": "2026-03-09T20:02:00Z",
+      "responded_at": "2026-03-09T20:04:00Z",
+      "evidence": {
+        "source": "fake",
+        "dataset_version": "synthetic-v1",
+        "source_ref": "fixture:payload-one",
+        "payload_sha256": "6c18e68764ff164a270431a1dead265e44cbf8748ff70be86fa4513a0d00b9ad",
+        "available_at": "2026-03-09T20:01:00Z",
+        "ingested_at": "2026-03-09T20:05:00Z"
+      },
+      "payload_ref": "sha256:6c18e68764ff164a270431a1dead265e44cbf8748ff70be86fa4513a0d00b9ad",
+      "dataset": "daily-aggregates"
+    },
+    "adjustment": {
+      "basis": "raw"
+    },
+    "shape": "ohlc",
+    "currency": "USD",
+    "measure_unit": "currency",
+    "open": "100",
+    "high": "103",
+    "low": "99",
+    "close": "102",
+    "volume": "0",
+    "notional": null,
+    "canonical_mapping": {
+      "mapping_id": "canonical:new",
+      "instrument_id": "stock:example",
+      "provider": "canonical",
+      "symbol": "NEW",
+      "mic": "XNAS",
+      "effective_from": "2026-03-09T00:00:00Z",
+      "evidence": {
+        "source": "fake",
+        "dataset_version": "synthetic-v1",
+        "source_ref": "fixture:identity",
+        "payload_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "available_at": "2020-01-01T00:00:00Z",
+        "ingested_at": "2020-01-02T00:00:00Z"
+      }
+    }
+  }
+}
