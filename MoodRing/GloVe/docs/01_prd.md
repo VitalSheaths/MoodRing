@@ -98,3 +98,7 @@ increment requires its own reviewed policy and scope.
 Issue #8 adds offline [daily market-data contracts](MARKET_CONTRACTS.md): OHLC,
 read-only index-reference slots, explicit coverage and provider evidence. It does
 not add a live feed, real historical dataset or account corporate-action processing.
+
+Issue #10 adds [offline ingestion coordination](OFFLINE_JOBS.md): bounded synthetic
+pages, in-memory atomic commits, replay, leases and explicit coverage results.
+Durable persistence, live providers, schedulers and backfills remain excluded.

@@ -139,3 +139,12 @@ and coverage reports distinguish missing data from nontrading days and inactive
 security lifetimes. See [market contracts](MARKET_CONTRACTS.md) for adjustment,
 provenance, index capability and revision rules. No persistence or live adapter
 is introduced.
+
+## Offline job/checkpoint increment
+
+Issue #10 defines `job-contract-v1` under `src/ingestion/jobs/`, coordinating the
+existing market/universe types with manifests, finite limits, attempts, leases,
+immutable batch results and reconstructable in-memory snapshots. The
+[offline job contract](OFFLINE_JOBS.md) specifies identity, counters, crash outcomes,
+coverage policy and the separate durable-persistence approval gate. Existing
+research run tables and the paper ledger are unchanged.
