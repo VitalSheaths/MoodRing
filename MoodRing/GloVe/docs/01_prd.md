@@ -94,3 +94,7 @@ adds offline [SIC/security-universe contracts](UNIVERSE_CONTRACTS.md) and synthe
 validation. These contracts do not claim real top-100 selection, a complete PIT
 archive, public data rights or live market coverage. The next selector/provider
 increment requires its own reviewed policy and scope.
+
+Issue #8 adds offline [daily market-data contracts](MARKET_CONTRACTS.md): OHLC,
+read-only index-reference slots, explicit coverage and provider evidence. It does
+not add a live feed, real historical dataset or account corporate-action processing.

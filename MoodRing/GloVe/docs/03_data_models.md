@@ -129,3 +129,13 @@ explicit ranking-policy inputs, immutable membership snapshots and rights declar
 It reuses SEC CIK/time validation. See [universe contracts](UNIVERSE_CONTRACTS.md)
 for precision, provenance, coverage checks, fixture-only policy parameters and
 limitations. A real selector, persisted master and live OHLC integration remain planned.
+
+## Daily market-data contract increment
+
+Issue #8 adds `market-contract-v1` in `src/ingestion/market/`, reusing universe
+identity, exact values, evidence and rights. Daily observations separate series
+identity, semantic value checksum and revision identity; supplied session calendars
+and coverage reports distinguish missing data from nontrading days and inactive
+security lifetimes. See [market contracts](MARKET_CONTRACTS.md) for adjustment,
+provenance, index capability and revision rules. No persistence or live adapter
+is introduced.
