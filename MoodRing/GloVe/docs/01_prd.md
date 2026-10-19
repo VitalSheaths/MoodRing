@@ -102,3 +102,7 @@ not add a live feed, real historical dataset or account corporate-action process
 Issue #10 adds [offline ingestion coordination](OFFLINE_JOBS.md): bounded synthetic
 pages, in-memory atomic commits, replay, leases and explicit coverage results.
 Durable persistence, live providers, schedulers and backfills remain excluded.
+
+Issue #12 adds explicitly migrated [PostgreSQL job persistence](POSTGRES_JOBS.md)
+for those synthetic contracts, with transactional checkpoints and restart recovery.
+It does not authorize live ingestion or migration of an existing research database.

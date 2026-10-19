@@ -55,6 +55,7 @@ setup and skip by default; see the verification guide below.
 - [SIC and universe contracts issue](https://github.com/VitalSheaths/MoodRing/issues/6)
 - [OHLC, index and provenance contracts issue](https://github.com/VitalSheaths/MoodRing/issues/8)
 - [Offline ingestion jobs issue](https://github.com/VitalSheaths/MoodRing/issues/10)
+- [PostgreSQL job persistence issue](https://github.com/VitalSheaths/MoodRing/issues/12)
 
 ## Contributor documentation
 

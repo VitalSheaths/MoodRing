@@ -148,3 +148,11 @@ immutable batch results and reconstructable in-memory snapshots. The
 [offline job contract](OFFLINE_JOBS.md) specifies identity, counters, crash outcomes,
 coverage policy and the separate durable-persistence approval gate. Existing
 research run tables and the paper ledger are unchanged.
+
+## PostgreSQL job persistence increment
+
+Issue #12 links job manifests, leases, attempts, checkpoints, batches and accepted
+revisions to the existing research run identity and lifecycle. See
+[PostgreSQL job persistence](POSTGRES_JOBS.md) for the authority mapping,
+transaction boundaries, compatible column widening and migration/recovery policy.
+The paper ledger and live-provider boundary remain unchanged.
