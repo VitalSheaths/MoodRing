@@ -50,6 +50,100 @@ and requires an exact manifest match. A fresh engine/process can reconstruct the
 typed checkpoint and resume through the existing orchestration loop. Incompatible
 or corrupted linked evidence is rejected rather than silently repaired.
 
+## Maintainer migration checklist
+
+Keep the writer stopped until all five steps pass. This checklist does not approve
+rollout to an existing research database; that needs a separate reviewed issue.
+
+1. **Inspect:** confirm the intended database and code revision without printing
+   its connection URL. Run `inspect_schema(engine)` with the inspection role;
+   record the status and review legacy compatibility and the migration diff.
+   Stop on `incompatible`, `checksum_mismatch` or any inspection error.
+2. **Approve:** obtain authorization for that exact target/revision, maintenance
+   window, backup/restore plan and role grants. Rehearse on a disposable copy;
+   preserve evidence and agree who can stop the writer.
+3. **Migrate:** use the separate migration role to call `migrate(engine)` once.
+   Accept only `applied` or `already_applied`; on failure keep the writer stopped.
+   Never use application startup to apply DDL.
+4. **Verify:** require `inspect_schema(engine) == 'applied'`, unchanged legacy
+   sample rows and expected grants. Run the reviewed bounded synthetic smoke job
+   with the normal writer role, reopen it through a fresh connection and verify
+   its checkpoint, evidence and counters. Confirm the inspection role cannot write
+   and the writer cannot perform DDL or delete evidence.
+5. **Enable the writer:** only after verification and explicit target approval,
+   enable the authorized synthetic caller with the normal role. Do not supply
+   migration credentials to it. If verification or operation fails, stop the
+   caller and retain evidence; investigate before retrying or restoring.
+
+There is no installed scheduler or enable-writer command: enabling means allowing
+only the separately authorized caller to invoke the existing store/orchestrator.
+
+## PostgreSQL privilege separation
+
+The following describes required access for the current adapter, not an installed
+role/grant migration or a claim that restricted-role deployment was tested. Use
+separate roles and account for inherited and `PUBLIC` grants. All roles need an
+authenticated connection (`CONNECT` on the target database, permitted by server
+connection policy). Keep normal roles out of owner/migration-role membership.
+
+### Normal job operation
+
+- `USAGE` on `bronze`; `SELECT` on the eight `job_*` tables in the mapping above
+  and `bronze.ingestion_runs`, plus inspection access described below (the store
+  inspects the schema when opening).
+- `INSERT` on those eight job tables and `bronze.ingestion_runs` to create jobs,
+  attempts and committed evidence.
+- `UPDATE` only on `job_coordination` (all mutable coordination fields),
+  `job_checkpoints(progress)`, `job_attempts(finished_at)` and
+  `ingestion_runs(status, total_fetched, total_inserted, ended_at, error_message)`.
+  Coordination writes include `write_xid` and `guard_expires_at`; row locking also
+  requires update permission. Database triggers still enforce write ordering.
+- Access to ordinary built-in functions used by the adapter (including advisory
+  locks, hashes, clocks and transaction IDs); default PostgreSQL function grants
+  normally provide this. Trigger functions run as the invoking role and query the
+  same tables; no direct application call to a `job_*` trigger function is needed.
+
+No job sequence privileges are needed: job keys are supplied, not sequence-backed.
+No `DELETE`, `TRUNCATE`, `CREATE`, table ownership, trigger creation, grant option,
+`CREATEDB`, `CREATEROLE` or superuser access is needed for normal operation.
+Legacy news ingestion is separate: do not grant its raw-news table/sequence access
+to the job writer unless that additional responsibility is separately approved.
+These grants are not per-user row isolation; the current adapter assumes a trusted
+research writer, not direct SQL access for public clients.
+
+### Migration execution
+
+Use a controlled owner role (or an authorized role able to act as that owner),
+with inspection access, database `CREATE` for the migration's schema creation
+statement, and `USAGE`/`CREATE` on `bronze` when it exists. It must own the existing
+`ingestion_runs` table to widen columns and install its trigger. It needs privileges
+to create the new tables/indexes/foreign keys/functions/triggers, `USAGE` on the
+trusted `plpgsql` language and referenced built-in types/functions, and write/read
+access to migration history. Newly created objects belong to this role; ownership
+provides the required new-object rights. Existing baseline tables must remain
+visible during inspection. No extension installation or superuser access is
+required. `CREATEDB` is needed by the disposable test fixture, not by `migrate`.
+
+Keep these credentials out of the writer. Object ownership inherently allows
+altering/bypassing guards, so it cannot be replaced by ordinary writer grants.
+
+### Schema inspection
+
+For `inspect_schema(engine)`: `USAGE` on an existing `bronze`, read access to
+migration history (`version`, `checksum`, `schema_sha` in
+`bronze.ingestion_job_migrations` when present), and the normal readable PostgreSQL
+catalogs plus schema-definition inspection functions used in `migrations.py`.
+No job payload/record reads or application-table writes are required by this
+inspection function. No object ownership, DDL or `pg_monitor` membership is needed
+under standard PostgreSQL catalog permissions. A hardened server with revoked
+catalog/function access needs a reviewed equivalent grant set; an access error
+must never be treated as a successful inspection.
+
+These requirements follow the adapter's SQL and PostgreSQL's
+[privilege definitions](https://www.postgresql.org/docs/16/ddl-priv.html) and
+[GRANT reference](https://www.postgresql.org/docs/16/sql-grant.html). Grant design
+and verification on a real target remain part of its separately approved rollout.
+
 ## Transaction boundaries
 
 Each mutation locks the run and coordinator, checks the expected version and
