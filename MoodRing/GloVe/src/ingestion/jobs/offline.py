@@ -37,6 +37,17 @@ class SyntheticProvider(Protocol):
     def fetch(self, request: RequestParameters, retry_index: int) -> SuppliedPage: ...
 
 
+class JobStore(Protocol):
+    @property
+    def snapshot(self) -> Snapshot: ...
+    def guard(self, token: int): ...
+    def preflight(self, series_key: str): ...
+    def commit(self, series_key: str, supplied, **kwargs) -> CommitResult: ...
+    def transition(self, target: str, token=None, code='ok'): ...
+    def completion_state(self): ...
+    def public_result(self) -> dict: ...
+
+
 def _replace(model, **changes):
     return type(model).model_validate(model.model_dump() | changes)
 
@@ -64,6 +75,9 @@ class FakeStore:
         now = utc(self.clock())
         if s.state != 'running' or s.lease is None or token != s.lease.token or now >= s.lease.expires_at:
             raise Rejected('stale_lease')
+
+    def guard(self, token: int):
+        self._guard(token)
 
     def _set(self, **changes):
         candidate = _replace(self.snapshot, **changes)
@@ -350,7 +364,7 @@ class FakeStore:
                     next_retry_at=s.next_retry_at.isoformat() if s.next_retry_at else None)
 
 
-def run(store: FakeStore, provider: SyntheticProvider, token: int, *, crash: str | None = None):
+def run(store: JobStore, provider: SyntheticProvider, token: int, *, crash: str | None = None):
     """Bounded dispatch of typed fixture pages only; retry is scheduled metadata, no sleep."""
     while True:
         s = store.snapshot
@@ -362,7 +376,7 @@ def run(store: FakeStore, provider: SyntheticProvider, token: int, *, crash: str
             store.transition(state, token, 'ok' if state == 'completed' else 'coverage_gap')
             return store.public_result()
         try:
-            store._guard(token)
+            store.guard(token)
             store.preflight(pending.series_key)
             spec = next(x for x in s.manifest.series if x.key == pending.series_key)
             request = _replace(spec.request, cursor_ref=pending.cursor_ref)
