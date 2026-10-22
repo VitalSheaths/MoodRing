@@ -36,3 +36,4 @@ jobs:
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m pytest -q
       - run: PYTHONPATH=src python examples/paper_demo.py
+      - run: PYTHONPATH=src python examples/synthetic_market_demo.py
