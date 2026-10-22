@@ -156,3 +156,11 @@ revisions to the existing research run identity and lifecycle. See
 [PostgreSQL job persistence](POSTGRES_JOBS.md) for the authority mapping,
 transaction boundaries, compatible column widening and migration/recovery policy.
 The paper ledger and live-provider boundary remain unchanged.
+
+## Offline SEC source-normalization increment
+
+Issue #14 maps synthetic submissions-style bytes into existing SEC envelopes and
+reuses the existing SEC checkpoint/classification rules. Adapter context records
+explicit receipt/publication evidence and verified amendment links; row metadata
+adds field pointers and bounded replay hashes. See [SEC normalization](SEC_NORMALIZATION.md).
+No new filing identity, market job type, database table or ledger is introduced.

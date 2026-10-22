@@ -127,3 +127,10 @@ issuer/source identities, invalid units/periods and blocked amendments. Tests co
 serialized restart, interrupted batches, eligibility, precision, schema versions
 and input limits. This evidence does not establish live SEC availability, production
 checkpoint durability or feature/model quality.
+
+## Offline metadata adapter increment
+
+Issue #14 adds [bounded synthetic submissions metadata normalization](SEC_NORMALIZATION.md)
+into these existing contracts. The SEC acceptance classifier is shared with the
+JSONL fixture runner. No live access, XBRL extraction, database write or replacement
+of the existing market job manifest is included.

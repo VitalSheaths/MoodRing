@@ -1,0 +1,27 @@
+{
+  "adapter_version": "submissions-subset-v1",
+  "data_kind": "synthetic",
+  "source_compatibility": "illustrative subset only; not a captured or verified SEC response",
+  "files": [
+    "metadata.json",
+    "context.json"
+  ],
+  "recognized_fields": [
+    "accessionNumber",
+    "form",
+    "filingDate",
+    "reportDate",
+    "acceptanceDateTime",
+    "primaryDocument"
+  ],
+  "ignored_fields": [
+    "name"
+  ],
+  "limits": {
+    "max_input_bytes": 1048576,
+    "max_rows": 1000,
+    "max_string_bytes": 65536,
+    "max_depth": 64,
+    "max_result_bytes": 4194304
+  }
+}
