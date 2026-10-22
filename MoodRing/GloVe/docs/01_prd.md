@@ -114,3 +114,7 @@ fundamentals or authorize live provider access; the later operating gates remain
 Issue #17 adds [synthetic selection and supplied OHLC/index adaptation](SYNTHETIC_MARKET.md).
 This exercises top-100 ranking and small replayable jobs; observed market universe
 selection, live provider compatibility and large-scale persistence remain gated.
+
+Issue #15 adds [disposable capacity measurements and retention dry runs](CAPACITY_MEASUREMENTS.md).
+[Measured results](CAPACITY_RESULTS.md) require review before any scale increase;
+no production retention, index/schema change or provider integration is included.

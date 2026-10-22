@@ -61,6 +61,7 @@ setup and skip by default; see the verification guide below.
 - [PostgreSQL job persistence issue](https://github.com/VitalSheaths/MoodRing/issues/12)
 - [Offline SEC metadata normalization issue](https://github.com/VitalSheaths/MoodRing/issues/14)
 - [Synthetic universe and OHLC/index issue](https://github.com/VitalSheaths/MoodRing/issues/17)
+- [Capacity measurement and retention planning issue](https://github.com/VitalSheaths/MoodRing/issues/15)
 
 ## Contributor documentation
 

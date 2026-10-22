@@ -172,3 +172,10 @@ quotas and snapshot contracts, then adapts bounded synthetic source pages into
 existing observations and job commits. No replacement identity, ledger or storage
 schema is introduced. See [synthetic market exercise](SYNTHETIC_MARKET.md) for the
 reuse matrix, source binding, finite bounds, demo limits and operational gates.
+
+## Disposable measurement increment
+
+Issue #15 reads existing job/evidence tables and PostgreSQL allocation metadata in
+read-only transactions, with no new persistent model. Retention planning is a pure
+inventory calculation and always proposes zero deletion bytes. See
+[measurement boundaries](CAPACITY_MEASUREMENTS.md) and [results](CAPACITY_RESULTS.md).
