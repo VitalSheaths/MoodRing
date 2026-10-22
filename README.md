@@ -60,6 +60,7 @@ setup and skip by default; see the verification guide below.
 - [Offline ingestion jobs issue](https://github.com/VitalSheaths/MoodRing/issues/10)
 - [PostgreSQL job persistence issue](https://github.com/VitalSheaths/MoodRing/issues/12)
 - [Offline SEC metadata normalization issue](https://github.com/VitalSheaths/MoodRing/issues/14)
+- [Synthetic universe and OHLC/index issue](https://github.com/VitalSheaths/MoodRing/issues/17)
 
 ## Contributor documentation
 

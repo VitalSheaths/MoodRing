@@ -164,3 +164,11 @@ reuses the existing SEC checkpoint/classification rules. Adapter context records
 explicit receipt/publication evidence and verified amendment links; row metadata
 adds field pointers and bounded replay hashes. See [SEC normalization](SEC_NORMALIZATION.md).
 No new filing identity, market job type, database table or ledger is introduced.
+
+## Synthetic selector and supplied market adapter
+
+Issue #17 computes membership through existing eligibility, exact ranks, SIC
+quotas and snapshot contracts, then adapts bounded synthetic source pages into
+existing observations and job commits. No replacement identity, ledger or storage
+schema is introduced. See [synthetic market exercise](SYNTHETIC_MARKET.md) for the
+reuse matrix, source binding, finite bounds, demo limits and operational gates.

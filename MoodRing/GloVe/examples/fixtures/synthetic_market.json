@@ -1,0 +1,119 @@
+{
+  "sic_codes": [
+    {
+      "code": "1000",
+      "description": "METAL MINING"
+    },
+    {
+      "code": "2000",
+      "description": "FOOD AND KINDRED PRODUCTS"
+    },
+    {
+      "code": "2800",
+      "description": "CHEMICALS & ALLIED PRODUCTS"
+    },
+    {
+      "code": "3674",
+      "description": "SEMICONDUCTORS & RELATED DEVICES"
+    },
+    {
+      "code": "3711",
+      "description": "MOTOR VEHICLES & PASSENGER CAR BODIES"
+    },
+    {
+      "code": "5812",
+      "description": "RETAIL-EATING PLACES"
+    },
+    {
+      "code": "6021",
+      "description": "NATIONAL COMMERCIAL BANKS"
+    },
+    {
+      "code": "6321",
+      "description": "ACCIDENT & HEALTH INSURANCE"
+    },
+    {
+      "code": "7372",
+      "description": "SERVICES-PREPACKAGED SOFTWARE"
+    },
+    {
+      "code": "8000",
+      "description": "SERVICES-HEALTH SERVICES"
+    },
+    {
+      "code": "8742",
+      "description": "MANAGEMENT CONSULTING SERVICES"
+    }
+  ],
+  "sic_source": "https://www.sec.gov/search-filings/standard-industrial-classification-sic-code-list",
+  "sic_captured_at": "2026-10-18T00:00:00Z",
+  "policy": {
+    "policy_version": "illustrative-v1",
+    "review_status": "fixture_only",
+    "review_ref": "fixture://illustrative-not-production-approved",
+    "company_count": 100,
+    "industry_count": 10,
+    "country": "US",
+    "currency": "USD",
+    "venues": [
+      "XNYS",
+      "XNAS",
+      "XASE"
+    ],
+    "weights": {
+      "market_cap": "0.4",
+      "earnings_yield": "0.3",
+      "liquidity": "0.3"
+    },
+    "valuation_metric": "ttm_common_earnings_yield",
+    "liquidity_metric": "close_times_volume",
+    "volume_scope": "consolidated",
+    "minimum_price": "5",
+    "minimum_dollar_volume": "10000000",
+    "minimum_history_sessions": 252,
+    "liquidity_lookback_sessions": 60,
+    "max_price_age_sessions": 0,
+    "max_fundamental_age_days": 180,
+    "minimum_industry_candidates": 3,
+    "industry_priority": "momentum_and_volume_percentiles",
+    "momentum_sessions": 63,
+    "volume_window_sessions": 20,
+    "momentum_weight": "0.7",
+    "volume_weight": "0.3",
+    "allocation": "issuer_cap_largest_remainder_with_capacity",
+    "minimum_seats_per_industry": 1,
+    "primary_listing_rule": "liquidity_desc_mic_instrument_id",
+    "reconstitution": "quarterly",
+    "missing_stale_policy": "exclude",
+    "exclusions": [
+      "etf",
+      "fund",
+      "preferred",
+      "warrant",
+      "adr",
+      "otc",
+      "suspended",
+      "penny"
+    ],
+    "tie_breakers": [
+      "market_cap_desc",
+      "liquidity_desc",
+      "issuer_id_asc"
+    ]
+  },
+  "data_kind": "synthetic",
+  "notice": "Illustrative measurements and identities; no observed market data.",
+  "candidate_counts": [
+    5,
+    8,
+    10,
+    12,
+    15,
+    18,
+    20,
+    22,
+    25,
+    28,
+    28
+  ]
+}
