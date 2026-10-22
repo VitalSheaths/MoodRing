@@ -1,0 +1,40 @@
+{
+  "ingested_at": "2026-10-04T00:00:00Z",
+  "availability": {
+    "0000000999-26-000001": {
+      "available_at": "2026-10-01T15:00:00Z",
+      "basis": "sec_publication",
+      "evidence": "synthetic:publication:0"
+    },
+    "0000000999-26-000002": {
+      "available_at": "2026-10-01T15:00:00Z",
+      "basis": "sec_publication",
+      "evidence": "synthetic:publication:1"
+    },
+    "0000000999-26-000003": {
+      "available_at": "2026-10-01T15:00:00Z",
+      "basis": "sec_publication",
+      "evidence": "synthetic:publication:2"
+    },
+    "0000000999-26-000004": {
+      "available_at": "2026-10-03T15:00:00Z",
+      "basis": "sec_publication",
+      "evidence": "synthetic:publication:3"
+    },
+    "0000000999-26-000005": {
+      "available_at": "2026-10-03T15:00:00Z",
+      "basis": "sec_publication",
+      "evidence": "synthetic:publication:4"
+    },
+    "0000000999-26-000006": {
+      "available_at": "2026-10-03T15:00:00Z",
+      "basis": "sec_publication",
+      "evidence": "synthetic:publication:5"
+    }
+  },
+  "amendments": {
+    "0000000999-26-000004": "0000000999-26-000001",
+    "0000000999-26-000005": "0000000999-26-000002",
+    "0000000999-26-000006": "0000000999-26-000003"
+  }
+}
