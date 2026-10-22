@@ -78,6 +78,35 @@ def universe_digest(universe: UniverseManifest) -> str:
     return payload_digest(universe.model_dump_json().encode())
 
 
+def classify(envelope: Envelope, payload_sha256: str, universe: UniverseManifest,
+             known: dict[str, Envelope], index: int) -> Outcome:
+    """Shared pure SEC acceptance rules; callers retain the accepted prefix."""
+    filing = envelope.filing
+    key = filing.source_key
+    if payload_sha256 != filing.provenance.payload_sha256:
+        event = Outcome(line=index, status='quarantined', reason='payload_hash_mismatch', source_key=key)
+    elif key in known:
+        duplicate = fingerprint(envelope) == fingerprint(known[key])
+        event = Outcome(line=index, status='duplicate' if duplicate else 'quarantined',
+                        reason='same_source_evidence' if duplicate else 'conflicting_source_identity', source_key=key)
+    elif filing.provenance.available_at is None:
+        event = Outcome(line=index, status='quarantined', reason='unknown_availability', source_key=key)
+    elif not universe.contains(filing.cik, filing.provenance.available_at):
+        event = Outcome(line=index, status='quarantined', reason='outside_universe', source_key=key)
+    elif filing.amends_accession and f'sec_edgar:{filing.amends_accession}' not in known:
+        event = Outcome(line=index, status='retryable', reason='missing_amendment_base', source_key=key)
+    else:
+        base = known.get(f'sec_edgar:{filing.amends_accession}')
+        if base and (base.filing.cik != filing.cik or base.filing.form.removesuffix('/A') != filing.form.removesuffix('/A')
+                     or (base.filing.report_period is not None and filing.report_period is not None
+                         and base.filing.report_period != filing.report_period)
+                     or filing.provenance.available_at < base.filing.provenance.available_at):
+            event = Outcome(line=index, status='quarantined', reason='conflicting_amendment_base', source_key=key)
+        else:
+            event = Outcome(line=index, status='accepted', reason='validated_source_evidence', source_key=key)
+    return event
+
+
 def run_batch(path: Path, universe: UniverseManifest, checkpoint: Checkpoint | None = None,
               *, batch_size: int = 10) -> tuple[Checkpoint, tuple[Outcome, ...]]:
     if isinstance(batch_size, bool) or not isinstance(batch_size, int) or not 1 <= batch_size <= 100:
@@ -115,31 +144,10 @@ def run_batch(path: Path, universe: UniverseManifest, checkpoint: Checkpoint | N
                 if not isinstance(wire, dict) or set(wire) != {'envelope', 'payload_text'} or not isinstance(wire['payload_text'], str):
                     raise ValueError('Invalid fixture wrapper')
                 envelope = Envelope.model_validate(wire['envelope'])
-                filing = envelope.filing
-                key = filing.source_key
-                if payload_digest(wire['payload_text'].encode()) != filing.provenance.payload_sha256:
-                    event = Outcome(line=index, status='quarantined', reason='payload_hash_mismatch', source_key=key)
-                elif key in known:
-                    duplicate = fingerprint(envelope) == fingerprint(known[key])
-                    event = Outcome(line=index, status='duplicate' if duplicate else 'quarantined',
-                                    reason='same_source_evidence' if duplicate else 'conflicting_source_identity', source_key=key)
-                elif filing.provenance.available_at is None:
-                    event = Outcome(line=index, status='quarantined', reason='unknown_availability', source_key=key)
-                elif not universe.contains(filing.cik, filing.provenance.available_at):
-                    event = Outcome(line=index, status='quarantined', reason='outside_universe', source_key=key)
-                elif filing.amends_accession and f'sec_edgar:{filing.amends_accession}' not in known:
-                    event = Outcome(line=index, status='retryable', reason='missing_amendment_base', source_key=key)
-                else:
-                    base = known.get(f'sec_edgar:{filing.amends_accession}')
-                    if base and (base.filing.cik != filing.cik or base.filing.form.removesuffix('/A') != filing.form.removesuffix('/A')
-                                 or (base.filing.report_period is not None and filing.report_period is not None
-                                     and base.filing.report_period != filing.report_period)
-                                 or filing.provenance.available_at < base.filing.provenance.available_at):
-                        event = Outcome(line=index, status='quarantined', reason='conflicting_amendment_base', source_key=key)
-                    else:
-                        event = Outcome(line=index, status='accepted', reason='validated_source_evidence', source_key=key)
-                        records.append(envelope)
-                        known[key] = envelope
+                event = classify(envelope, payload_digest(wire['payload_text'].encode()), universe, known, index)
+                if event.status == 'accepted':
+                    records.append(envelope)
+                    known[envelope.filing.source_key] = envelope
             except (ValidationError, ValueError, TypeError, UnicodeDecodeError):
                 # No raw payload or provider exception data in public validation outcomes.
                 event = Outcome(line=index, status='quarantined', reason='invalid_contract')
