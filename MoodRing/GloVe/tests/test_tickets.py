@@ -19,7 +19,6 @@ def test_public_issue_forms_and_links():
     assert (forms / 'architecture.yml').exists()
     assert (forms / 'bug.yml').exists()
     readme = (root / 'README.md').read_text()
-    assert 'https://github.com/VitalSheaths/MoodRing/issues/1' in readme
     assert 'https://img.shields.io/github/issues/VitalSheaths/MoodRing' in readme
     assert 'https://img.shields.io/github/issues-closed/VitalSheaths/MoodRing' in readme
     assert 'docs/tickets' not in readme

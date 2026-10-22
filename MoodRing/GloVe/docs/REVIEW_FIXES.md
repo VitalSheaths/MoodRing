@@ -43,7 +43,7 @@ verification log below for results from this revision.
 The reported runtime failure remains an open reproduction ticket. Mocked provider
 tests and an offline demo cannot establish live provider availability, automated
 model quality, public-hosting safety or production readiness. Remaining work is
-tracked in [GitHub issues](https://github.com/VitalSheaths/MoodRing/issues).
+tracked in [tickets](tickets/README.md).
 
 ### Local verification for this revision (2026-10-10)
 

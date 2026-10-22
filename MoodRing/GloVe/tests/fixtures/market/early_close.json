@@ -1,0 +1,23 @@
+{
+  "calendar_id": "fixture-equity",
+  "calendar_version": "fixture-november-v1",
+  "timezone": "America/New_York",
+  "mode": "regular",
+  "valid_from": "2026-11-26",
+  "valid_until": "2026-11-27",
+  "non_sessions": [
+    "2026-11-26"
+  ],
+  "sessions": [
+    {
+      "calendar_id": "fixture-equity",
+      "calendar_version": "fixture-november-v1",
+      "timezone": "America/New_York",
+      "mode": "regular",
+      "session_date": "2026-11-27",
+      "opens_at": "2026-11-27T14:30:00Z",
+      "closes_at": "2026-11-27T18:00:00Z",
+      "early_close": true
+    }
+  ]
+}

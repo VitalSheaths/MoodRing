@@ -49,16 +49,24 @@ setup and skip by default; see the verification guide below.
 
 - [Usage guide](MoodRing/GloVe/docs/PAPER_TRADING.md)
 - [Verification results](MoodRing/GloVe/docs/REVIEW_FIXES.md)
-## Open and completed tickets
+- [Open issues](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aopen) and [completed issues](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aclosed)
 
-[![Open Issues](https://img.shields.io/github/issues/VitalSheaths/MoodRing)](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aopen)
-[![Closed Issues](https://img.shields.io/github/issues-closed/VitalSheaths/MoodRing)](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aclosed)
+![Open issues](https://img.shields.io/github/issues/VitalSheaths/MoodRing)
+![Closed issues](https://img.shields.io/github/issues-closed/VitalSheaths/MoodRing)
 
-- [Open tickets](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aopen)
-- [Completed tickets](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aclosed)
-- [#1: Replace local token authentication before public hosting](https://github.com/VitalSheaths/MoodRing/issues/1)
+- [SEC ingestion contracts issue](https://github.com/VitalSheaths/MoodRing/issues/4)
+- [SIC and universe contracts issue](https://github.com/VitalSheaths/MoodRing/issues/6)
+- [OHLC, index and provenance contracts issue](https://github.com/VitalSheaths/MoodRing/issues/8)
+- [Offline ingestion jobs issue](https://github.com/VitalSheaths/MoodRing/issues/10)
+- [PostgreSQL job persistence issue](https://github.com/VitalSheaths/MoodRing/issues/12)
+- [Offline SEC metadata normalization issue](https://github.com/VitalSheaths/MoodRing/issues/14)
 
-Issues are created one at a time for review. A closed issue indicates completed
-acceptance work; closed internal notes are not automatically published as issues.
+## Contributor documentation
+
+- [Product scope](MoodRing/GloVe/docs/01_prd.md)
+- [Technical design](MoodRing/GloVe/docs/02_architecture.md)
+- [Data contracts](MoodRing/GloVe/docs/03_data_models.md)
+- [Delivery rules](MoodRing/GloVe/docs/04_rules.md)
+- [Contributor instructions](.github/copilot-instructions.md) and [Git workflow](MoodRing/GloVe/docs/GIT_WORKFLOW.md)
 
 This is a learning simulator. It uses virtual money and does not submit real trades.
