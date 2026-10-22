@@ -49,7 +49,10 @@ setup and skip by default; see the verification guide below.
 
 - [Usage guide](MoodRing/GloVe/docs/PAPER_TRADING.md)
 - [Verification results](MoodRing/GloVe/docs/REVIEW_FIXES.md)
-- [Open and completed tickets](MoodRing/GloVe/docs/tickets/README.md)
+- [Open issues](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aopen) and [completed issues](https://github.com/VitalSheaths/MoodRing/issues?q=is%3Aissue+is%3Aclosed)
+
+![Open issues](https://img.shields.io/github/issues/VitalSheaths/MoodRing)
+![Closed issues](https://img.shields.io/github/issues-closed/VitalSheaths/MoodRing)
 
 - [SEC ingestion contracts issue](https://github.com/VitalSheaths/MoodRing/issues/4)
 - [SIC and universe contracts issue](https://github.com/VitalSheaths/MoodRing/issues/6)
