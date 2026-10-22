@@ -110,3 +110,7 @@ It does not authorize live ingestion or migration of an existing research databa
 Issue #14 adds an [offline SEC metadata adapter](SEC_NORMALIZATION.md) using
 supplied synthetic source-shaped payloads. It does not fetch filings, calculate
 fundamentals or authorize live provider access; the later operating gates remain.
+
+Issue #17 adds [synthetic selection and supplied OHLC/index adaptation](SYNTHETIC_MARKET.md).
+This exercises top-100 ranking and small replayable jobs; observed market universe
+selection, live provider compatibility and large-scale persistence remain gated.
