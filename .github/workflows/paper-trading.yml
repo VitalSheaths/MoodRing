@@ -37,3 +37,4 @@ jobs:
       - run: python -m pytest -q
       - run: PYTHONPATH=src python examples/paper_demo.py
       - run: PYTHONPATH=src python examples/synthetic_market_demo.py
+      - run: PYTHONPATH=src python examples/measure_synthetic_capacity.py --ack-disposable --output resources/capacity-report.json
