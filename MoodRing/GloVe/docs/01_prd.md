@@ -106,3 +106,7 @@ Durable persistence, live providers, schedulers and backfills remain excluded.
 Issue #12 adds explicitly migrated [PostgreSQL job persistence](POSTGRES_JOBS.md)
 for those synthetic contracts, with transactional checkpoints and restart recovery.
 It does not authorize live ingestion or migration of an existing research database.
+
+Issue #14 adds an [offline SEC metadata adapter](SEC_NORMALIZATION.md) using
+supplied synthetic source-shaped payloads. It does not fetch filings, calculate
+fundamentals or authorize live provider access; the later operating gates remain.
