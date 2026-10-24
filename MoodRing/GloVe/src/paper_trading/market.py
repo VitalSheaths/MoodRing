@@ -172,3 +172,28 @@ class MarketEnricher:
                 }}
                 self._save()
             return self.cache[symbol]
+
+
+class OfflineQuoteProvider:
+    """Fixed synthetic lesson prices, with explicit local observation timestamps.
+
+    Timestamps describe this simulator's observation, never an exchange event.
+    Prices do not change on refresh. Unsupported symbols have no fabricated price.
+    """
+    prices = {'AAPL': Decimal('100'), 'MSFT': Decimal('50'), 'NVDA': Decimal('75')}
+
+    def __init__(self, clock=utcnow):
+        self.clock = clock
+
+    def get_quotes(self, tickers):
+        now = self.clock()
+        return {symbol: Quote(symbol, self.prices[symbol], now, now, 'synthetic_offline')
+                for symbol in sorted({ticker_symbol(t) for t in tickers}) if symbol in self.prices}
+
+    def get_metadata(self, symbol):
+        symbol = ticker_symbol(symbol)
+        if symbol not in self.prices:
+            raise ValueError('Unsupported offline symbol')
+        return {'cached_at': self.clock().isoformat(), 'data': {
+            'shortName': f'SYNTHETIC offline lesson: {symbol}', 'sector': None,
+            'industry': None, 'marketCap': None, 'currency': 'USD'}}
