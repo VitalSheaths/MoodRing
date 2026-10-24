@@ -16,66 +16,96 @@ one entry per signal. Stops and targets close the entire position at the next
 observed eligible price. There are no option legs, short selling, leverage,
 partial fills, partial exits or real broker orders in this release.
 
-## API workflow
+## Run the offline API
 
-The server reads `.env` through the existing configuration module. Map secret
-Bearer tokens to stable user IDs in `PAPER_API_USERS_JSON`; each route checks
-ownership. No token configuration means all private routes return 503. Use a
-random secret rather than the placeholder in `.env.example`.
+From a clean checkout, Python 3.11, at the repository root:
 
 ```bash
-export TOKEN='your-secret-from-env'
-curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"name":"Learning: 2% allocation","initial_capital":10000,"model_version":"manual-v1","config":{"position_pct":2,"auto_exit":true}}' \
-  http://127.0.0.1:8000/api/v1/scenarios
+cd MoodRing/GloVe
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+export PAPER_QUOTE_MODE=offline
+export PAPER_ENABLE_PRICE_CHECKER=false
+export PAPER_DATABASE_URL=sqlite:///resources/offline-lesson.sqlite
+# Generate a local token for both server and smoke client; never commit it.
+export PAPER_SMOKE_TOKEN="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+export PAPER_API_USERS_JSON="$(python -c 'import json,os; print(json.dumps({os.environ["PAPER_SMOKE_TOKEN"]: "learner"}))')"
+PYTHONPATH=src python -m api.server
 ```
 
-Use the returned scenario ID to post a signal. `prediction_time` and
-`feature_available_at` require timezone offsets; availability must be at or
-before prediction time, and prediction time cannot be in the future. Supply
-real timestamps from the data that produced the prediction. Returns and risk
-inputs are decimal fractions: `mu=0.03` means an expected 3% return and
-`drawdown_risk=0.02` means a modeled 2% drawdown; `var` is variance in squared
-decimal-return units. All prediction heads must refer to the same forecast horizon. The signal POST is
-an adapter for manual or external model predictions. This app does not invent
-trained checkpoints or claim that submitted probabilities are calibrated.
+Installation requires package access; the running offline API and smoke client do
+not need external data. The API persists normal **synthetic paper ledger records**
+to the selected SQLite file. This is not a zero-persistence SEC test. Use a fresh
+lesson database when you want an empty history; do not overwrite an existing ledger.
+No research database or migrations are needed.
+
+In a second terminal, activate the same environment and set `PAPER_SMOKE_TOKEN` to
+the token generated in the server terminal (keep it out of shared logs). Run:
+
+```bash
+cd MoodRing/GloVe  # from repository root
+source .venv/bin/activate
+# export PAPER_SMOKE_TOKEN='the token from the server terminal'
+PYTHONPATH=src python examples/api_smoke.py
+```
+
+For a one-command disposable server and ledger (no token setup needed):
+
+```bash
+PYTHONPATH=src python examples/api_smoke.py --self-contained
+```
+
+This starts a child API on a free loopback port, forces offline mode and a temporary
+SQLite ledger, runs the same HTTP lesson, then stops the child and removes only
+its own temporary directory. CI runs this command alongside the existing demos.
+
+Alternatively run the server in the background and the smoke client in the **same**
+shell so that they inherit the same token. The script verifies offline readiness,
+creates two scenarios, publishes BUY/PASS signals, buys, refreshes, closes, verifies
+idempotency/history, and saves/compares two replay runs. It prints only summary IDs
+and counts. Each invocation creates new lesson records. It accepts only loopback
+HTTP, disables environment proxies/redirects, and refuses a non-offline server.
+
+Open [Swagger UI](http://127.0.0.1:8000/docs), click **Authorize**, and enter the
+configured secret without the `Bearer ` prefix. ReDoc is at `/redoc` and the schema
+at `/openapi.json`. Authentication is a local static token map, not public identity.
+Unconfigured authentication returns 503; missing/invalid bearer authentication
+returns 401. Every private operation enforces ownership.
+
+## API workflow and schemas
+
+Use `POST /api/v1/scenarios` with `{"name":"Offline learning","config":{"auto_exit":false}}`.
+Use the returned string `id` as `scenario_id` when publishing a signal. Swagger's
+signal example generates aware prediction/feature timestamps when the schema is
+loaded. Reload `/docs` if the example expires. Supply genuine feature availability
+for your own research inputs; the generated example is a synthetic lesson only.
+Returns/risk inputs are decimal fractions: `mu=0.03` means 3%, `var` is squared-return
+variance, and `drawdown_risk=0.02` means 2%. Availability must be at or before
+prediction time, which must not be in the future.
+
+Use the returned BUY signal `id` in `POST /api/v1/paper-trading/trade`:
 
 ```json
-{
-  "ticker": "AAPL",
-  "prediction": {
-    "prob_up": 0.8,
-    "mu": 0.03,
-    "var": 0.0004,
-    "trade_success_prob": 0.75,
-    "drawdown_risk": 0.02,
-    "prediction_time": "REPLACE_WITH_CURRENT_OFFSET_TIMESTAMP",
-    "feature_available_at": "REPLACE_WITH_ACTUAL_FEATURE_OFFSET_TIMESTAMP"
-  }
-}
+{"signal_id":"USE_RETURNED_SIGNAL_ID","dollars":"100"}
 ```
 
-Post this to `/api/v1/scenarios/{scenario_id}/signals`. The existing decision
-engine returns BUY or PASS; all signal decisions are stored, including PASS.
-Only BUY signals can open positions, and the engine reevaluates the prediction
-with the entry quote and scenario costs at execution time.
+Supply an `Idempotency-Key` header, for example `entry-lesson-1`. Then close using
+`POST /api/v1/paper-trading/close/{trade_id}` with `exit-lesson-1`. Repeating the same
+successful request/key replays the existing trade. A changed payload under the same
+key returns 409; a new close key on an already closed trade returns 409. Omit
+`dollars` to use scenario sizing; an explicit amount is the total entry budget
+including costs. PASS signals are recorded but cannot open a trade.
 
-```bash
-curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -H 'Idempotency-Key: entry-lesson-1' \
-  -d '{"signal_id":"RETURNED_SIGNAL_ID","dollars":100}' \
-  http://127.0.0.1:8000/api/v1/paper-trading/trade
-
-curl -X POST -H "Authorization: Bearer $TOKEN" -H 'Idempotency-Key: exit-lesson-1' \
-  http://127.0.0.1:8000/api/v1/paper-trading/close/RETURNED_TRADE_ID
-```
-
-Omit `dollars` to use scenario sizing. A supplied dollar amount is a total entry
-budget including commission; exceeding the permitted allocation produces an
-error. Repeating the same successful request with the same idempotency key
-returns the existing trade; changing its payload produces 409. Retrying an
-entry with another key cannot trade the same signal again. A close with a new
-key after closure also returns 409.
+Responses serialize money, prices, quantities and portfolio ratios as **decimal
+strings**. Prediction/decision model metrics remain JSON numbers. IDs are opaque
+strings, timestamps are offset-aware ISO values, and absent exit/performance fields
+are null. `config_json`, `prediction_json` and `decision_json` names match the
+existing service; they are not renamed to the obsolete legacy models. All documented
+operations now declare response schemas. Extension dictionaries are limited to
+research metadata and driver evidence. Errors share `{"ok":false,"detail":"..."}`;
+validation errors return 422 without echoing submitted values. See the schema for
+400/401/403/404/409/422/500/503 responses.
 
 | Route | Purpose |
 |---|---|
@@ -88,16 +118,36 @@ key after closure also returns 409.
 | `GET /api/v1/signals/{id}` | Prediction, decision and observed price horizons |
 | `POST /api/v1/paper-trading/trade` | Open a position from a BUY signal |
 | `POST /api/v1/paper-trading/close/{trade_id}` | Close the whole position |
-| `POST /api/v1/market/refresh` | Poll and update the requesting user's watched tickers |
+| `POST /api/v1/market/refresh` | Refresh and update the requesting user's watched tickers |
 | `GET /api/v1/market/quotes?tickers=AAPL&tickers=MSFT` | Timestamped indicative quotes |
-| `GET /api/v1/market/metadata/AAPL` | Cached company metadata |
+| `GET /api/v1/market/metadata/{ticker}` | Cached company metadata |
 | `POST /api/v1/backtest/run` | Replay timestamped prices and predictions; save the result |
 | `GET /api/v1/backtest/runs` | This user's saved research runs |
 | `POST /api/v1/backtest/compare` | Compare 2–20 saved run IDs |
-| `GET /health` | Process and background refresh status |
+| `GET /ready` | Local readiness; HTTP 503 when a dependency/configuration is unavailable |
+| `GET /health` | Process/dependency status (HTTP 200) |
 
-The generated `/docs` page contains full request schemas. Histories are limited
-recent records, not paginated exports; default limit is 500, maximum 5,000.
+Histories are bounded recent records, not paginated exports: default 500, maximum
+5,000 per collection. Saved runs list defaults to 100, maximum 1,000. Compare requires
+2–20 distinct owned IDs. Backtest examples in `/docs` contain all required bars and
+predictions; they perform no historical download. Entries use a later price event.
+
+## Health and readiness
+
+`GET /health` reports process/dependency state with HTTP 200. `GET /ready` returns
+200 only when local auth is configured, the database answers `SELECT 1`, and an
+enabled background checker task is running without a recorded refresh error;
+otherwise it returns 503. Neither certifies production readiness or probes live
+provider reachability. A disabled checker is valid for manual-only learning.
+
+Both report `authentication_configured`, database backend/connectivity,
+`quote_provider_mode` (`offline`, `live`, or injected `custom`), `offline`, checker
+lifecycle, last attempt/success timestamps and sanitized refresh error. Last refresh
+exposes counts only, not user symbols/IDs, tokens, provider exceptions or database
+URLs. A failed refresh retains marks and last success; a successful refresh clears
+the error. Readiness cannot guarantee a fresh price for every ticker: inspect quote
+and valuation flags. Health can query the paper database but never initiates a
+provider/SEC request. Custom injected providers are explicitly not claimed offline.
 
 ## Cash and P&L accounting
 
@@ -147,7 +197,19 @@ implied by choosing a Kelly fraction.
 
 ## Quote updates and caching
 
-`PriceChecker` runs every 300 seconds by default, batching tickers from open
+The API defaults to `PAPER_QUOTE_MODE=offline`. It serves fixed synthetic prices
+AAPL=100, MSFT=50 and NVDA=75 USD, with `source=synthetic_offline`. These ticker labels
+are lesson identifiers, not observed market prices. Repeated refreshes leave prices
+unchanged; observation/fetch times are local simulator times. Unsupported symbols
+return unavailable rather than fabricated prices. Metadata is explicitly synthetic,
+with null industry/sector/market cap; offline mode creates no metadata JSON cache.
+
+The existing external adapter is **opt-in** with `PAPER_QUOTE_MODE=live`. This is
+indicative yfinance access, not approval of public redistribution, provider rights,
+SEC access or a production feed. This increment tests it only with mocks. Keep the
+offline setting for all documented lessons and CI. Unknown modes fail startup.
+
+When enabled, `PriceChecker` runs every 300 seconds by default, batching tickers from open
 positions and recently tracked signals in a single provider call. The yfinance
 adapter requests one-minute regular-session bars and preserves the source's
 bar timestamp and fetch timestamp. This is polling of potentially delayed,
@@ -159,7 +221,7 @@ Execution requires a quote no older than 900 seconds by default. Cache refreshes
 do not reset the source timestamp. A source failure never silently replaces a
 price with zero or invents a current timestamp. Last marks remain visible and
 become explicitly stale. Closed markets may therefore prevent new simulated
-entries; use the offline demo or historical replay outside market hours.
+entries; use the offline API, offline demo or supplied historical replay outside market hours.
 
 `CachedQuoteProvider` keeps prices in memory for 60 seconds. `MarketEnricher`
 keeps company metadata in a JSON file for one hour and evicts stale or malformed
