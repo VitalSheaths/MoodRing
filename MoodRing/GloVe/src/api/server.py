@@ -225,7 +225,9 @@ def create_app(
 
     def health_state():
         try:
-            with engine.connect() as connection:
+            # StaticPool in-memory SQLite shares a connection with the checker.
+            # Serialize the probe with ledger transactions, just like service reads.
+            with service.lock, engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
             connected = True
         except Exception:

@@ -97,8 +97,16 @@ expanded testing, durable state and automation remain separately gated.
 ### Local evidence for this increment
 
 Fresh Python 3.11 virtual environment installed the unchanged `requirements-dev.txt`.
-Full PostgreSQL 16-enabled regression: **539 passed, no skips**, with one existing
-Starlette/AnyIO deprecation warning. Focused API suites: **24 passed**. The actual
+Full PostgreSQL 16-enabled regression: **540 passed, no skips**, with one existing
+Starlette/AnyIO deprecation warning. Focused API suites: **25 passed**. The actual
 loopback HTTP `api_smoke.py --self-contained`, `paper_demo.py` and
 `synthetic_market_demo.py` passed. Dependency installation used package access;
 these workflows used no external financial data. Hosted CI remains separate evidence.
+
+The first PR CI run exposed an in-memory SQLite concurrency race: the health probe
+could overlap the background checker's transaction on the shared StaticPool
+connection. The probe now uses the same service lock as ledger operations. A
+regression checks that synchronization, and the checker lifecycle passed 100 local
+repetitions. This correction preserves database and execution semantics; it does
+not disable the checker or weaken readiness assertions. Final hosted CI results
+must be checked on the updated head.

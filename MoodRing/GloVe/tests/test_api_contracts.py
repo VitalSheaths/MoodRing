@@ -415,3 +415,40 @@ def test_mismatched_quote_is_unavailable_without_leaking_details():
         response = client.get("/api/v1/market/quotes?tickers=AAPL")
         assert response.status_code == 503
         assert response.json()["detail"] == "Market data temporarily unavailable"
+
+
+def test_health_probe_serializes_with_ledger_transactions(monkeypatch):
+    from contextlib import contextmanager
+
+    app = create_app("sqlite://", users={"token": "alice"}, enable_checker=False)
+    service = app.state.paper_trading_service
+    original_lock = service.lock
+    original_connect = service.store.engine.connect
+    guarded = []
+
+    @contextmanager
+    def lock():
+        with original_lock:
+            guarded.append(True)
+            try:
+                yield
+            finally:
+                guarded.pop()
+
+    class Guard:
+        def __enter__(self):
+            self.context = lock()
+            return self.context.__enter__()
+
+        def __exit__(self, *args):
+            return self.context.__exit__(*args)
+
+    def connect(*args, **kwargs):
+        assert guarded, "Health must share the service transaction lock"
+        return original_connect(*args, **kwargs)
+
+    monkeypatch.setattr(service, "lock", Guard())
+    monkeypatch.setattr(service.store.engine, "connect", connect)
+    with TestClient(app) as client:
+        assert client.get("/health").json()["database"]["connected"]
+        assert client.get("/ready").status_code == 200
