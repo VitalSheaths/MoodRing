@@ -25,12 +25,16 @@ cd MoodRing/GloVe
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
-cp .env.example .env
-# Set your own random secret in PAPER_API_USERS_JSON inside .env.
+export PAPER_QUOTE_MODE=offline
+export PAPER_ENABLE_PRICE_CHECKER=false
+export PAPER_SMOKE_TOKEN="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+export PAPER_API_USERS_JSON="$(python -c 'import json,os; print(json.dumps({os.environ["PAPER_SMOKE_TOKEN"]: "learner"}))')"
 PYTHONPATH=src python -m api.server
 ```
 
-Open [API docs](http://127.0.0.1:8000/docs) and authenticate with your bearer secret.
+Open [API docs](http://127.0.0.1:8000/docs), click Authorize and enter your secret.
+Offline quotes are fixed synthetic lesson values, not current market prices.
+For a complete API smoke run and exact second-terminal commands, see the [usage guide](MoodRing/GloVe/docs/PAPER_TRADING.md).
 Keep the server local; public hosting is not supported yet.
 
 ## Try the demo and tests
@@ -38,6 +42,7 @@ Keep the server local; public hosting is not supported yet.
 With the same environment active:
 
 ```bash
+PYTHONPATH=src python examples/api_smoke.py --self-contained
 PYTHONPATH=src python examples/paper_demo.py
 python -m pytest -q
 ```
@@ -61,6 +66,7 @@ setup and skip by default; see the verification guide below.
 - [PostgreSQL job persistence issue](https://github.com/VitalSheaths/MoodRing/issues/12)
 - [Offline SEC metadata normalization issue](https://github.com/VitalSheaths/MoodRing/issues/14)
 - [Synthetic universe and OHLC/index issue](https://github.com/VitalSheaths/MoodRing/issues/17)
+- [Local API alignment issue](https://github.com/VitalSheaths/MoodRing/issues/23)
 - [Capacity measurement and retention planning issue](https://github.com/VitalSheaths/MoodRing/issues/15)
 
 ## Contributor documentation
