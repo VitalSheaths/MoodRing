@@ -278,6 +278,7 @@ def fetch_metadata(
                         "invalid_compression",
                         "unsupported_encoding",
                         "worker_shutdown_failed",
+                        "trust_store_unavailable",
                     }
                     else "transport_unavailable"
                 )

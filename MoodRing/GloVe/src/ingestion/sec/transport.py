@@ -157,9 +157,16 @@ def https_attempt(
     # Load compiled-in trust locations explicitly, not inherited SSL_CERT_* overrides.
     defaults = ssl.get_default_verify_paths()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    context.load_verify_locations(
-        cafile=defaults.openssl_cafile, capath=defaults.openssl_capath
-    )
+    cafile = defaults.openssl_cafile
+    capath = defaults.openssl_capath
+    cafile = cafile if cafile and os.path.isfile(cafile) else None
+    capath = capath if capath and os.path.isdir(capath) else None
+    if cafile or capath:
+        context.load_verify_locations(cafile=cafile, capath=capath)
+    elif sys.platform == "win32":
+        context.load_default_certs(ssl.Purpose.SERVER_AUTH)
+    else:
+        raise TransportFailure("trust_store_unavailable")
     context.verify_mode = ssl.CERT_REQUIRED
     context.check_hostname = True
     connection = http.client.HTTPSConnection(
@@ -280,6 +287,7 @@ class ProcessTransport:
                     if code not in (
                         "transport_timeout",
                         "transport_error",
+                        "trust_store_unavailable",
                         "deadline_exceeded",
                         "body_limit",
                         "headers_limit",

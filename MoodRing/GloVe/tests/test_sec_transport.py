@@ -505,3 +505,78 @@ def test_parent_deadline_includes_process_startup_and_elapsed_attempt(monkeypatc
             "0000000123", deadline=30, timeout=5, cap=100, monotonic=clock.monotonic
         )
     assert ("terminate",) in fake.calls
+
+
+@pytest.mark.parametrize(
+    "existing", ["directory", "file", "both", "neither", "windows", "none"]
+)
+def test_missing_trust_paths_fail_closed_before_connection(
+    monkeypatch, tmp_path, existing
+):
+    cafile = tmp_path / "ca.pem"
+    capath = tmp_path / "certs"
+    if existing in ("file", "both"):
+        cafile.touch()
+    if existing in ("directory", "both"):
+        capath.mkdir()
+    monkeypatch.setattr(
+        wire.ssl,
+        "get_default_verify_paths",
+        lambda: SimpleNamespace(
+            openssl_cafile=None if existing == "none" else str(cafile),
+            openssl_capath=None if existing == "none" else str(capath),
+        ),
+    )
+    monkeypatch.setattr(
+        wire.sys, "platform", "win32" if existing == "windows" else "linux"
+    )
+    calls = []
+
+    class Context:
+        verify_mode = None
+        check_hostname = False
+
+        def load_verify_locations(self, **kw):
+            calls.append(kw)
+
+        def load_default_certs(self, purpose):
+            calls.append(purpose)
+
+    context = Context()
+    monkeypatch.setattr(wire.ssl, "SSLContext", lambda protocol: context)
+
+    def connection(*args, **kwargs):
+        assert context.verify_mode == ssl.CERT_REQUIRED and context.check_hostname
+        raise RuntimeError("connection reached")
+
+    monkeypatch.setattr(wire.http.client, "HTTPSConnection", connection)
+    error = wire.TransportFailure if existing in ("neither", "none") else RuntimeError
+    message = (
+        "^trust_store_unavailable$"
+        if error is wire.TransportFailure
+        else "^connection reached$"
+    )
+    with pytest.raises(error, match=message):
+        wire.https_attempt(
+            "0000000123", UA, deadline=30, timeout=5, cap=100, monotonic=lambda: 0
+        )
+    if existing in ("neither", "none"):
+        assert calls == []
+    elif existing == "windows":
+        assert calls == [ssl.Purpose.SERVER_AUTH]
+    else:
+        assert calls == [
+            {
+                "cafile": str(cafile) if existing in ("file", "both") else None,
+                "capath": str(capath) if existing in ("directory", "both") else None,
+            }
+        ]
+
+
+def test_worker_preserves_fixed_trust_store_error(monkeypatch):
+    fake = FakeProcess(b'{"error":"trust_store_unavailable"}')
+    monkeypatch.setattr(wire.subprocess, "Popen", lambda *a, **kw: fake)
+    with pytest.raises(wire.TransportFailure, match="^trust_store_unavailable$"):
+        wire.ProcessTransport(enabled=True, user_agent=UA).fetch(
+            "0000000123", deadline=30, timeout=5, cap=100, monotonic=lambda: 0
+        )

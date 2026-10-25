@@ -187,3 +187,19 @@ Separate reviewed scope is still required for any actual smoke, additional manua
 runs, persistent SEC state, scheduling, broader CIK coverage, production universe,
 public API, history/backfills or model/catalyst use. Public hosting/identity and live
 market access are independent decisions and were not prerequisites here.
+
+## Trust-store portability and smoke review
+
+Only existing compiled-in CA files/directories are loaded. If neither exists,
+Windows uses its system store; other platforms fail before connection creation
+with `trust_store_unavailable`. TLS verification remains mandatory. Worker and
+public outcomes preserve that fixed code without provider details.
+
+See [one-request smoke plan](SEC_SMOKE_PLAN.md); execution requires separate approval.
+
+Offline trust-setup microbenchmark (local Python 3.11/macOS, 100 sequential
+iterations per version, real local CA loading, socket connections forbidden):
+previous median 4.724 ms / p95 9.765 ms; path-checked median 4.761 ms / p95
+5.179 ms. These are environment-specific observations, not network latency or a
+production performance guarantee; the median difference was 0.037 ms. Windows
+system-store selection is mocked in tests, not validated on a Windows host.

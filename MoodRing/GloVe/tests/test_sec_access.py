@@ -585,3 +585,9 @@ def test_pacing_from_completion_covers_variable_process_startup():
         and len(t.calls) == 1
         and not clock.sleeps
     )
+
+
+def test_trust_store_error_is_sanitized_and_not_retried():
+    result, transport, _ = run([TransportFailure("trust_store_unavailable")])
+    assert "trust_store_unavailable" in str(result.public_summary())
+    assert len(transport.calls) == 1
