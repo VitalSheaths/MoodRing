@@ -34,7 +34,9 @@ jobs:
           cache: pip
           cache-dependency-path: MoodRing/GloVe/requirements*.txt
       - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest -q tests/test_sec_access.py tests/test_sec_transport.py
       - run: python -m pytest -q
+      - run: PYTHONPATH=src python -B examples/sec_metadata.py --offline-demo
       - run: PYTHONPATH=src python examples/api_smoke.py --self-contained
       - run: PYTHONPATH=src python examples/paper_demo.py
       - run: PYTHONPATH=src python examples/synthetic_market_demo.py
