@@ -118,3 +118,9 @@ PostgreSQL is not accessed by this adapter.
 Live SEC access, real market-data access, production backfills, scheduler deployment,
 real-database rollout, retention enforcement and production universe selection each
 remain separately reviewed increments. Issue #15 remains deferred operational work.
+
+## Manual transport boundary
+
+Issue #22 adds [bounded manual metadata/SIC access](SEC_ACCESS.md) and mocked
+transport security tests. This normalizer remains pure and uses the same evidence
+contracts. No real SEC execution or persistent ingestion is authorized by its PR.
