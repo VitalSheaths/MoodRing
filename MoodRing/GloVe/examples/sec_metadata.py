@@ -20,10 +20,12 @@ ROOT = Path(__file__).resolve().parents[1]
 class SafeParser(argparse.ArgumentParser):
     def error(self, message):
         # argparse's default can echo contact details, arbitrary arguments or paths.
+        """Reject invalid arguments without echoing potentially private values."""
         raise AccessError("invalid_cli_arguments")
 
 
 def read_input(path):
+    """Read at most one MiB of caller-supplied input, rejecting larger documents."""
     with Path(path).open("rb") as stream:
         body = stream.read(1048577)
     if len(body) > 1048576:
@@ -32,6 +34,7 @@ def read_input(path):
 
 
 def main(argv=None):
+    """Run the manual CLI with default-off network access and sanitized result output."""
     parser = SafeParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--offline-demo", action="store_true")
@@ -62,6 +65,7 @@ def main(argv=None):
 
             class MockTransport:
                 def fetch(self, identifier, **kwargs):
+                    """Return the next synthetic response without network access."""
                     return Response(200, body, payload_digest(body))
 
             result = fetch_metadata(

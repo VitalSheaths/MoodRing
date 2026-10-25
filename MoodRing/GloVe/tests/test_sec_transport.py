@@ -17,7 +17,10 @@ from sec_access_support import Clock, UA
 
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
+    """Reject real socket operations so these controls remain entirely offline."""
+
     def blocked(*a, **kw):
+        """Fail immediately if a test attempts a real socket operation."""
         raise AssertionError("real network forbidden")
 
     monkeypatch.setattr(socket.socket, "connect", blocked)
@@ -31,6 +34,7 @@ class Body:
     status = 200
 
     def __init__(self, chunks, headers=(), clock=None, drip=0):
+        """Initialize bounded synthetic response chunks, headers and optional drip timing."""
         self.chunks = list(chunks)
         self.headers = list(headers)
         self.clock = clock
@@ -38,12 +42,15 @@ class Body:
         self.reads = []
 
     def getheaders(self):
+        """Return synthetic response headers without network access."""
         return self.headers
 
     def getheader(self, name):
+        """Return the first matching synthetic response header, if present."""
         return next((v for k, v in self.headers if k.lower() == name.lower()), None)
 
     def read1(self, size):
+        """Read a bounded synthetic chunk and optionally advance the fake clock."""
         self.reads.append(size)
         if self.clock:
             self.clock.seconds += self.drip
@@ -72,11 +79,13 @@ class Body:
     ],
 )
 def test_destination_generator_only_accepts_canonical_ciks(identifier):
+    """Verify destination generator only accepts canonical ciks."""
     with pytest.raises(wire.TransportFailure, match="invalid_destination"):
         wire.target(identifier)
 
 
 def test_fixed_destination_tls_and_hostile_proxy_variables(monkeypatch, tmp_path):
+    """Verify fixed destination tls and hostile proxy variables."""
     for key in (
         "HTTP_PROXY",
         "HTTPS_PROXY",
@@ -98,6 +107,7 @@ def test_fixed_destination_tls_and_hostile_proxy_variables(monkeypatch, tmp_path
         check_hostname = False
 
         def load_verify_locations(self, **kw):
+            """Record explicitly selected CA paths without loading certificates."""
             calls.append(("roots", kw))
 
     monkeypatch.setattr(wire.ssl, "SSLContext", lambda protocol: Context())
@@ -105,15 +115,19 @@ def test_fixed_destination_tls_and_hostile_proxy_variables(monkeypatch, tmp_path
 
     class HTTPS:
         def __init__(self, host, **kw):
+            """Capture or ignore connection inputs without opening a socket."""
             calls.append(("connection", host, kw))
 
         def request(self, method, path, headers):
+            """Record or intercept a synthetic HTTPS request without sending it."""
             calls.append(("request", method, path, headers))
 
         def getresponse(self):
+            """Return the synthetic response without contacting SEC."""
             return body
 
         def close(self):
+            """Record or simulate connection closure without socket operations."""
             calls.append(("close",))
 
     monkeypatch.setattr(wire.http.client, "HTTPSConnection", HTTPS)
@@ -142,6 +156,7 @@ def test_fixed_destination_tls_and_hostile_proxy_variables(monkeypatch, tmp_path
     "status", [301, 302, 303, 307, 308, 403, 404, 429, 500, 502, 503, 504]
 )
 def test_redirects_errors_never_read_bodies_or_follow_location(monkeypatch, status):
+    """Verify redirects errors never read bodies or follow location."""
     body = Body(
         [b"SECRET"],
         [("Location", "https://evil.invalid/private"), ("Retry-After", "2")],
@@ -151,15 +166,19 @@ def test_redirects_errors_never_read_bodies_or_follow_location(monkeypatch, stat
 
     class HTTPS:
         def __init__(self, *a, **kw):
+            """Capture or ignore connection inputs without opening a socket."""
             pass
 
         def request(self, *a, **kw):
+            """Record or intercept a synthetic HTTPS request without sending it."""
             calls.append(a)
 
         def getresponse(self):
+            """Return the synthetic response without contacting SEC."""
             return body
 
         def close(self):
+            """Record or simulate connection closure without socket operations."""
             pass
 
     monkeypatch.setattr(wire.http.client, "HTTPSConnection", HTTPS)
@@ -190,6 +209,7 @@ def test_redirects_errors_never_read_bodies_or_follow_location(monkeypatch, stat
     ],
 )
 def test_header_bounds_reject_before_body_read(headers, expected):
+    """Verify header bounds reject before body read."""
     b = Body([b"{}"], headers)
     with pytest.raises(wire.TransportFailure, match=expected):
         wire.read_body(b, deadline=30, cap=100, monotonic=lambda: 0)
@@ -200,6 +220,7 @@ def test_header_bounds_reject_before_body_read(headers, expected):
     "headers", [[], [("Content-Length", "1")], [("Content-Length", "99")]]
 )
 def test_misleading_or_missing_length_cannot_bypass_counting(headers):
+    """Verify misleading or missing length cannot bypass counting."""
     b = Body([b"x" * 101], headers)
     with pytest.raises(wire.TransportFailure, match="body_limit"):
         wire.read_body(b, deadline=30, cap=100, monotonic=lambda: 0)
@@ -207,6 +228,7 @@ def test_misleading_or_missing_length_cannot_bypass_counting(headers):
 
 
 def test_short_body_declared_length_fails():
+    """Verify short body declared length fails."""
     with pytest.raises(wire.TransportFailure, match="invalid_length"):
         wire.read_body(
             Body([b"{}"], [("Content-Length", "9")]),
@@ -217,6 +239,7 @@ def test_short_body_declared_length_fails():
 
 
 def test_gzip_decoded_cap_is_enforced_without_unbounded_flush():
+    """Verify gzip decoded cap is enforced without unbounded flush."""
     encoded = gzip.compress(b"x" * 2000000)
     assert len(encoded) < 1048576
     b = Body(
@@ -236,6 +259,7 @@ def test_gzip_decoded_cap_is_enforced_without_unbounded_flush():
     ],
 )
 def test_invalid_truncated_or_concatenated_compression_fails(encoded):
+    """Verify invalid truncated or concatenated compression fails."""
     with pytest.raises(wire.TransportFailure, match="invalid_compression"):
         wire.read_body(
             Body([encoded], [("Content-Encoding", "gzip")]),
@@ -247,6 +271,7 @@ def test_invalid_truncated_or_concatenated_compression_fails(encoded):
 
 @pytest.mark.parametrize("compressed", [False, True])
 def test_slow_drip_deadline_checked_during_identity_and_gzip_reads(compressed):
+    """Verify slow drip deadline checked during identity and gzip reads."""
     clock = Clock()
     body = gzip.compress(b"{}") if compressed else b"xxxxxxxxxx"
     chunks = [bytes([b]) for b in body]
@@ -262,6 +287,7 @@ def test_slow_drip_deadline_checked_during_identity_and_gzip_reads(compressed):
 
 
 def test_exact_decoded_boundary_and_hashes():
+    """Verify exact decoded boundary and hashes."""
     body = b"x" * 100
     for encoding in ("identity", "gzip"):
         encoded = gzip.compress(body) if encoding == "gzip" else body
@@ -294,6 +320,7 @@ def test_exact_decoded_boundary_and_hashes():
     ],
 )
 def test_retry_after_is_bounded_numeric_not_disclosed(header, delay, invalid):
+    """Verify retry after is bounded numeric not disclosed."""
     assert wire.retry_after(header, datetime(2026, 10, 25, tzinfo=timezone.utc)) == (
         delay,
         invalid,
@@ -302,6 +329,7 @@ def test_retry_after_is_bounded_numeric_not_disclosed(header, delay, invalid):
 
 class FakeProcess:
     def __init__(self, output=None, timeout=False):
+        """Initialize fake worker pipes, output and timeout behavior."""
         self.output = output
         self.timeout = timeout
         self.returncode = None
@@ -309,6 +337,7 @@ class FakeProcess:
         self.calls = []
 
     def communicate(self, message, timeout):
+        """Record the private request and return mock output or a simulated timeout."""
         self.calls.append(("communicate", json.loads(message), timeout))
         if self.timeout:
             raise subprocess.TimeoutExpired("private-command", timeout)
@@ -316,22 +345,27 @@ class FakeProcess:
         return self.output, None
 
     def poll(self):
+        """Return the simulated child exit status."""
         return self.returncode
 
     def terminate(self):
+        """Record simulated termination and mark the mock child exited."""
         self.calls.append(("terminate",))
         self.returncode = -15
 
     def kill(self):
+        """Record simulated forced termination and mark the mock child exited."""
         self.calls.append(("kill",))
         self.returncode = -9
 
     def wait(self, timeout):
+        """Simulate the child wait behavior required by this cleanup test."""
         self.calls.append(("wait", timeout))
         return self.returncode
 
 
 def worker_reply(**changes):
+    """Encode a synthetic successful worker reply with optional malformed-field overrides."""
     body = {
         "status": 200,
         "body": base64.b64encode(b"{}").decode(),
@@ -345,6 +379,7 @@ def worker_reply(**changes):
 
 
 def test_process_ignores_hostile_environment_and_bounds_time(monkeypatch):
+    """Verify process ignores hostile environment and bounds time."""
     for key in (
         "HTTP_PROXY",
         "HTTPS_PROXY",
@@ -365,6 +400,7 @@ def test_process_ignores_hostile_environment_and_bounds_time(monkeypatch):
     calls = []
 
     def start(argv, **kw):
+        """Construct or return a fake child while recording process startup inputs."""
         calls.append((argv, kw))
         return fake
 
@@ -392,6 +428,7 @@ def test_process_ignores_hostile_environment_and_bounds_time(monkeypatch):
 
 
 def test_blocked_dns_or_slow_read_is_terminated_by_parent_deadline(monkeypatch):
+    """Verify blocked dns or slow read is terminated by parent deadline."""
     fake = FakeProcess(timeout=True)
     monkeypatch.setattr(wire.subprocess, "Popen", lambda *a, **kw: fake)
     with pytest.raises(wire.TransportFailure, match="^transport_timeout$"):
@@ -403,8 +440,11 @@ def test_blocked_dns_or_slow_read_is_terminated_by_parent_deadline(monkeypatch):
 
 
 def test_worker_kill_fallback_and_no_start_after_budget(monkeypatch):
+    """Verify worker kill fallback and no start after budget."""
+
     class Stuck(FakeProcess):
         def wait(self, timeout):
+            """Simulate the child wait behavior required by this cleanup test."""
             self.calls.append(("wait", timeout))
             if ("kill",) not in self.calls:
                 raise subprocess.TimeoutExpired("private", timeout)
@@ -441,6 +481,7 @@ def test_worker_kill_fallback_and_no_start_after_budget(monkeypatch):
     ],
 )
 def test_malformed_worker_output_sanitized(monkeypatch, output):
+    """Verify malformed worker output sanitized."""
     monkeypatch.setattr(wire.subprocess, "Popen", lambda *a, **kw: FakeProcess(output))
     with pytest.raises(wire.TransportFailure, match="^worker_failed$"):
         wire.ProcessTransport(enabled=True, user_agent=UA).fetch(
@@ -449,6 +490,7 @@ def test_malformed_worker_output_sanitized(monkeypatch, output):
 
 
 def test_worker_rejects_disabled_protocol_without_connection(monkeypatch):
+    """Verify worker rejects disabled protocol without connection."""
     monkeypatch.setattr(
         wire.sys, "stdin", SimpleNamespace(buffer=io.BytesIO(b'{"enabled":false}'))
     )
@@ -464,8 +506,11 @@ def test_worker_rejects_disabled_protocol_without_connection(monkeypatch):
 
 
 def test_unreapable_worker_blocks_further_dispatch_and_closes_pipes(monkeypatch):
+    """Verify unreapable worker blocks further dispatch and closes pipes."""
+
     class Unreapable(FakeProcess):
         def wait(self, timeout):
+            """Simulate the child wait behavior required by this cleanup test."""
             raise subprocess.TimeoutExpired("private-command", timeout)
 
     fake = Unreapable(timeout=True)
@@ -478,6 +523,7 @@ def test_unreapable_worker_blocks_further_dispatch_and_closes_pipes(monkeypatch)
 
 
 def test_no_transport_process_spawn_on_disabled_or_invalid_identity(monkeypatch):
+    """Verify no transport process spawn on disabled or invalid identity."""
     monkeypatch.setattr(
         wire.subprocess,
         "Popen",
@@ -492,10 +538,12 @@ def test_no_transport_process_spawn_on_disabled_or_invalid_identity(monkeypatch)
 
 
 def test_parent_deadline_includes_process_startup_and_elapsed_attempt(monkeypatch):
+    """Verify parent deadline includes process startup and elapsed attempt."""
     clock = Clock()
     fake = FakeProcess(worker_reply())
 
     def start(*a, **kw):
+        """Construct or return a fake child while recording process startup inputs."""
         clock.seconds = 6
         return fake
 
@@ -513,6 +561,7 @@ def test_parent_deadline_includes_process_startup_and_elapsed_attempt(monkeypatc
 def test_missing_trust_paths_fail_closed_before_connection(
     monkeypatch, tmp_path, existing
 ):
+    """Verify missing trust paths fail closed before connection."""
     cafile = tmp_path / "ca.pem"
     capath = tmp_path / "certs"
     if existing in ("file", "both"):
@@ -537,15 +586,18 @@ def test_missing_trust_paths_fail_closed_before_connection(
         check_hostname = False
 
         def load_verify_locations(self, **kw):
+            """Record explicitly selected CA paths without loading certificates."""
             calls.append(kw)
 
         def load_default_certs(self, purpose):
+            """Record Windows system-store selection without consulting host trust roots."""
             calls.append(purpose)
 
     context = Context()
     monkeypatch.setattr(wire.ssl, "SSLContext", lambda protocol: context)
 
     def connection(*args, **kwargs):
+        """Assert verified TLS setup before intercepting connection construction."""
         assert context.verify_mode == ssl.CERT_REQUIRED and context.check_hostname
         raise RuntimeError("connection reached")
 
@@ -574,6 +626,7 @@ def test_missing_trust_paths_fail_closed_before_connection(
 
 
 def test_worker_preserves_fixed_trust_store_error(monkeypatch):
+    """Verify worker preserves fixed trust store error."""
     fake = FakeProcess(b'{"error":"trust_store_unavailable"}')
     monkeypatch.setattr(wire.subprocess, "Popen", lambda *a, **kw: fake)
     with pytest.raises(wire.TransportFailure, match="^trust_store_unavailable$"):

@@ -34,6 +34,7 @@ from ingestion.sec.transport import (
 
 class AccessError(Exception):
     def __init__(self, code):
+        """Store a fixed sanitized access failure code."""
         self.code = code
         super().__init__(code)
 
@@ -82,6 +83,7 @@ class IssuerResult:
     normalized: Result | None = field(default=None, repr=False)
 
     def public_summary(self):
+        """Return sanitized counts and statuses without raw payloads or private receipt details."""
         return {
             "issuer_ordinal": self.ordinal,
             "status": self.status,
@@ -99,6 +101,7 @@ class RunResult:
     issuers: tuple[IssuerResult, ...]
 
     def public_summary(self):
+        """Return sanitized counts and statuses without raw payloads or private receipt details."""
         return {
             "attempts": sum(r.attempts for r in self.issuers),
             "issuers": [r.public_summary() for r in self.issuers],
@@ -108,10 +111,12 @@ class RunResult:
 
 
 def _now():
+    """Return the current timezone-aware UTC receipt time."""
     return datetime.now(timezone.utc)
 
 
 def _sic(data, taxonomy, receipt):
+    """Classify current SIC against the pinned taxonomy without inventing historical availability."""
     value = data.get("sic")
     code, status = None, "missing"
     if value is not None and value != "":
@@ -134,6 +139,7 @@ def _sic(data, taxonomy, receipt):
 
 
 def _receipt(identifier, requested_at, received_at, response):
+    """Bind issuer, request times and decoded/wire hashes into a validated receipt."""
     raw_hash = payload_digest(response.body)
     wire_hash = response.wire_sha256
     if (

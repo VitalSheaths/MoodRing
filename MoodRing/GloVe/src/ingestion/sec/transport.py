@@ -31,11 +31,13 @@ CHUNK = 8192
 
 class TransportFailure(Exception):
     def __init__(self, code):
+        """Store a fixed sanitized transport failure code."""
         self.code = code
         super().__init__(code)
 
 
 def target(identifier):
+    """Generate the fixed SEC submissions path from a canonical positive CIK."""
     if (
         not isinstance(identifier, str)
         or not re.fullmatch(r"[0-9]{10}", identifier)
@@ -47,6 +49,7 @@ def target(identifier):
 
 def identified(value):
     # Syntax is not identity verification; the actual operator needs human approval.
+    """Validate an ASCII product and contact identity without authenticating its owner."""
     if (
         not isinstance(value, str)
         or not value.isascii()
@@ -71,6 +74,7 @@ class Response:
 
 
 def retry_after(value, now):
+    """Parse a bounded retry delay; flag malformed values without disclosing headers."""
     if value is None:
         return None, False
     if not isinstance(value, str) or len(value) > 128 or not value.isascii():
@@ -149,6 +153,7 @@ def read_body(response, *, deadline, cap, monotonic=time.monotonic):
 def https_attempt(
     identifier, user_agent, *, deadline, timeout, cap, monotonic=time.monotonic
 ):
+    """Perform one fixed-host verified HTTPS attempt with bounded response decoding."""
     path = target(identifier)
     identified(user_agent)
     if monotonic() >= deadline:
@@ -213,10 +218,12 @@ class ProcessTransport:
     """
 
     def __init__(self, *, enabled=False, user_agent=None):
+        """Configure explicit transport opt-in and validate the operator identity."""
         self.enabled = enabled is True
         self.user_agent = identified(user_agent) if self.enabled else None
 
     def fetch(self, identifier, *, deadline, timeout, cap, monotonic=time.monotonic):
+        """Run one isolated bounded worker attempt and validate its private response."""
         if not self.enabled:
             raise TransportFailure("network_disabled")
         target(identifier)
@@ -361,6 +368,7 @@ class ProcessTransport:
 
 def _main():
     # Worker protocol is private and does not accept URLs, headers or output paths.
+    """Handle one private bounded worker request and emit only a fixed protocol result."""
     try:
         data = json.loads(sys.stdin.buffer.read(4097))
         if (

@@ -18,7 +18,10 @@ from sec_access_support import Clock, MockTransport, UA, inputs, payload, respon
 
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
+    """Reject real socket operations so these controls remain entirely offline."""
+
     def forbidden(*a, **kw):
+        """Fail immediately if the test reaches a forbidden network boundary."""
         raise AssertionError("No real SEC network access in tests")
 
     monkeypatch.setattr(socket.socket, "connect", forbidden)
@@ -27,6 +30,7 @@ def no_network(monkeypatch):
 
 
 def run(values=None, ciks=None, **kwargs):
+    """Execute the access flow with synthetic responses, fixture inputs and a fake clock."""
     universe, taxonomy = inputs()
     clock = kwargs.pop("timer", Clock())
     transport = MockTransport(clock, [response()] if values is None else values)
@@ -46,6 +50,7 @@ def run(values=None, ciks=None, **kwargs):
 
 
 def context():
+    """Build reviewed synthetic publication and amendment evidence for normalization tests."""
     return {
         "0000000123": {
             "availability": {
@@ -60,10 +65,12 @@ def context():
 
 
 def test_network_is_off_by_default_even_with_injected_transport(monkeypatch):
+    """Verify network is off by default even with injected transport."""
     u, t = inputs()
 
     class Forbidden:
         def fetch(self, *a, **kw):
+            """Return the next synthetic response without network access."""
             pytest.fail("transport constructed/called before permission")
 
     for value in (False, None, 1, "true"):
@@ -88,6 +95,7 @@ def test_network_is_off_by_default_even_with_injected_transport(monkeypatch):
     ],
 )
 def test_operator_required_before_dispatch(ua):
+    """Verify operator required before dispatch."""
     u, t = inputs()
     with pytest.raises(AccessError, match="invalid_configuration"):
         fetch_metadata(["123"], u, t, allow_network=True, user_agent=ua)
@@ -113,6 +121,7 @@ def test_operator_required_before_dispatch(ua):
     ],
 )
 def test_invalid_destinations_and_list_bounds(ciks):
+    """Verify invalid destinations and list bounds."""
     with pytest.raises(AccessError, match="invalid_configuration"):
         run(ciks=ciks)
 
@@ -134,11 +143,13 @@ def test_invalid_destinations_and_list_bounds(ciks):
     ],
 )
 def test_limits_cannot_be_raised_or_coerced(limits):
+    """Verify limits cannot be raised or coerced."""
     with pytest.raises(AccessError, match="invalid_configuration"):
         run(limits=limits)
 
 
 def test_missing_publication_is_ineligible_and_current_sic_is_not_history():
+    """Verify missing publication is ineligible and current sic is not history."""
     result, _, _ = run()
     item = result.issuers[0]
     assert item.status == "completed_with_gaps"
@@ -155,6 +166,7 @@ def test_missing_publication_is_ineligible_and_current_sic_is_not_history():
 
 
 def test_receipt_hash_binding_accepted_context_and_deterministic_replay():
+    """Verify receipt hash binding accepted context and deterministic replay."""
     body = payload(ignored_source="retained-in-hash")
     a, transport, _ = run([response(body)], contexts=context())
     b, _, _ = run([response(body)], contexts=context())
@@ -192,6 +204,7 @@ def test_receipt_hash_binding_accepted_context_and_deterministic_replay():
     ],
 )
 def test_sic_missing_invalid_unknown_never_fabricated(change, status):
+    """Verify sic missing invalid unknown never fabricated."""
     r, _, _ = run([response(payload(sic=change))])
     assert r.issuers[0].sic.status == status
     assert r.issuers[0].sic.code is None
@@ -214,6 +227,7 @@ def test_sic_missing_invalid_unknown_never_fabricated(change, status):
     ],
 )
 def test_structural_and_issuer_failures_are_sanitized(body):
+    """Verify structural and issuer failures are sanitized."""
     r, client, _ = run([response(body)])
     item = r.issuers[0]
     assert item.status == "failed" and item.normalized is None
@@ -223,6 +237,7 @@ def test_structural_and_issuer_failures_are_sanitized(body):
 
 
 def test_misaligned_arrays_and_excessive_rows():
+    """Verify misaligned arrays and excessive rows."""
     data = json.loads(payload())
     data["filings"]["recent"]["form"].append("10-Q")
     r, _, _ = run([response(json.dumps(data).encode())])
@@ -235,6 +250,7 @@ def test_misaligned_arrays_and_excessive_rows():
 
 
 def test_invalid_offset_and_amendment_do_not_infer_evidence():
+    """Verify invalid offset and amendment do not infer evidence."""
     data = json.loads(payload())
     data["filings"]["recent"]["acceptanceDateTime"] = ["2026-10-01T14:00:00"]
     r, _, _ = run([response(json.dumps(data).encode())], contexts=context())
@@ -246,6 +262,7 @@ def test_invalid_offset_and_amendment_do_not_infer_evidence():
 
 
 def test_partial_failure_visible_for_each_issuer():
+    """Verify partial failure visible for each issuer."""
     r, client, _ = run(
         [Response(403), response(payload(cik="456"))], ciks=["123", "456"]
     )
@@ -268,6 +285,7 @@ def test_partial_failure_visible_for_each_issuer():
     ],
 )
 def test_nonretryable_http_failures(status, code):
+    """Verify nonretryable http failures."""
     r, t, _ = run([Response(status, body=b"PRIVATE BODY")])
     assert r.issuers[0].code == code and r.issuers[0].attempts == 1
     assert "PRIVATE" not in repr(r) and "PRIVATE" not in json.dumps(r.public_summary())
@@ -285,6 +303,7 @@ def test_nonretryable_http_failures(status, code):
     ],
 )
 def test_one_retry_per_issuer_pacing_and_five_second_limits(first):
+    """Verify one retry per issuer pacing and five second limits."""
     r, t, clock = run([first, response()])
     assert r.issuers[0].attempts == 2
     assert [c[1] for c in t.calls] == [0, 1]
@@ -296,6 +315,7 @@ def test_one_retry_per_issuer_pacing_and_five_second_limits(first):
 
 
 def test_four_total_attempts_at_most_two_issuers():
+    """Verify four total attempts at most two issuers."""
     r, t, _ = run(
         [
             Response(503),
@@ -311,6 +331,7 @@ def test_four_total_attempts_at_most_two_issuers():
 
 
 def test_reduced_attempt_limits_no_hidden_retry():
+    """Verify reduced attempt limits no hidden retry."""
     r, t, _ = run(
         [Response(503), Response(503)], ciks=["123", "456"], limits={"max_attempts": 1}
     )
@@ -320,6 +341,7 @@ def test_reduced_attempt_limits_no_hidden_retry():
 
 
 def test_retry_after_cannot_fit_does_not_sleep_or_retry():
+    """Verify retry after cannot fit does not sleep or retry."""
     r, t, clock = run([Response(429, retry_delay=31)])
     assert r.issuers[0].code == "retry_after_budget"
     assert len(t.calls) == 1 and not clock.sleeps
@@ -328,9 +350,11 @@ def test_retry_after_cannot_fit_does_not_sleep_or_retry():
 
 
 def test_retry_sleep_and_overall_deadline_cannot_be_extended():
+    """Verify retry sleep and overall deadline cannot be extended."""
     clock = Clock()
 
     def slow():
+        """Advance the fake clock to exercise timeout accounting."""
         clock.seconds = 30
         return response()
 
@@ -340,6 +364,7 @@ def test_retry_sleep_and_overall_deadline_cannot_be_extended():
     clock = Clock()
 
     def oversleep(s):
+        """Advance beyond the requested delay to exercise deadline rechecks."""
         clock.seconds += 31
 
     u, tx = inputs()
@@ -359,6 +384,7 @@ def test_retry_sleep_and_overall_deadline_cannot_be_extended():
 
 
 def test_unexpected_provider_error_and_shutdown_stop_are_safe():
+    """Verify unexpected provider error and shutdown stop are safe."""
     r, t, _ = run(
         [RuntimeError("contact@secret.invalid Authorization: abc /private/file")]
     )
@@ -368,6 +394,7 @@ def test_unexpected_provider_error_and_shutdown_stop_are_safe():
 
 
 def test_body_and_result_limits_fail_closed_at_adapter_boundary():
+    """Verify body and result limits fail closed at adapter boundary."""
     r, _, _ = run([response(b"x" * 100)], limits={"body_bytes": 99})
     assert r.issuers[0].code == "body_limit"
     r, _, _ = run(limits={"result_bytes": 1})
@@ -377,6 +404,7 @@ def test_body_and_result_limits_fail_closed_at_adapter_boundary():
 
 
 def test_no_durable_writes_or_disclosure(monkeypatch, caplog, capsys):
+    """Verify no durable writes or disclosure."""
     import builtins
 
     u, t = inputs()
@@ -388,6 +416,7 @@ def test_no_durable_writes_or_disclosure(monkeypatch, caplog, capsys):
     original_os_open = os.open
 
     def guarded_os_open(path, flags, *args, **kwargs):
+        """Reject low-level write opens while allowing read-only fixture access."""
         if flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
             pytest.fail("adapter attempted a low-level durable write")
         return original_os_open(path, flags, *args, **kwargs)
@@ -401,6 +430,7 @@ def test_no_durable_writes_or_disclosure(monkeypatch, caplog, capsys):
     original_open = builtins.open
 
     def guarded_open(file, mode="r", *a, **kw):
+        """Reject file write modes while allowing read-only fixture access."""
         if any(c in mode for c in "wax+"):
             raise AssertionError("adapter attempted a durable write")
         return original_open(file, mode, *a, **kw)
@@ -436,6 +466,7 @@ def test_no_durable_writes_or_disclosure(monkeypatch, caplog, capsys):
 
 
 def cli_module():
+    """Load the manual CLI module for isolated offline invocation tests."""
     spec = importlib.util.spec_from_file_location(
         "sec_metadata_cli", Path(__file__).parents[1] / "examples/sec_metadata.py"
     )
@@ -445,6 +476,7 @@ def cli_module():
 
 
 def test_cli_default_off_mock_demo_and_sanitized_arguments(monkeypatch, capsys):
+    """Verify cli default off mock demo and sanitized arguments."""
     cli = cli_module()
     monkeypatch.setenv("SEC_USER_AGENT", "secret@secret.invalid\nAuthorization: bad")
     assert cli.main([]) == 2
@@ -472,6 +504,7 @@ def test_cli_default_off_mock_demo_and_sanitized_arguments(monkeypatch, capsys):
 
 
 def test_unreviewed_issuer_and_future_taxonomy_fail_before_dispatch():
+    """Verify unreviewed issuer and future taxonomy fail before dispatch."""
     with pytest.raises(AccessError, match="invalid_configuration"):
         run(ciks=["789"])
     u, t = inputs()
@@ -481,6 +514,7 @@ def test_unreviewed_issuer_and_future_taxonomy_fail_before_dispatch():
 
 
 def test_no_public_contact_body_header_stdout_or_stderr(caplog, capsys):
+    """Verify no public contact body header stdout or stderr."""
     r, _, _ = run(
         [
             RuntimeError(
@@ -494,6 +528,7 @@ def test_no_public_contact_body_header_stdout_or_stderr(caplog, capsys):
 
 
 def test_linked_source_paths_are_never_traversed():
+    """Verify linked source paths are never traversed."""
     data = json.loads(payload())
     data["filings"]["files"] = [{"name": "https://evil.invalid?Authorization=private"}]
     data["filings"]["recent"]["primaryDocument"] = ["https://evil.invalid/private"]
@@ -504,6 +539,7 @@ def test_linked_source_paths_are_never_traversed():
 
 
 def test_cli_one_request_policy_is_exact_and_mocked(monkeypatch, capsys):
+    """Verify cli one request policy is exact and mocked."""
     from ingestion.sec.access import RunResult
 
     cli = cli_module()
@@ -541,6 +577,7 @@ def test_cli_one_request_policy_is_exact_and_mocked(monkeypatch, capsys):
 
 
 def test_cli_bad_cik_cannot_read_input_or_start_transport(monkeypatch, capsys):
+    """Verify cli bad cik cannot read input or start transport."""
     cli = cli_module()
     monkeypatch.setenv("SEC_USER_AGENT", UA)
     monkeypatch.setattr(
@@ -569,9 +606,11 @@ def test_cli_bad_cik_cannot_read_input_or_start_transport(monkeypatch, capsys):
 
 
 def test_pacing_from_completion_covers_variable_process_startup():
+    """Verify pacing from completion covers variable process startup."""
     clock = Clock()
 
     def slow_response():
+        """Simulate transport startup delay before returning a synthetic response."""
         clock.seconds += 0.75
         return response()
 
@@ -588,6 +627,7 @@ def test_pacing_from_completion_covers_variable_process_startup():
 
 
 def test_trust_store_error_is_sanitized_and_not_retried():
+    """Verify trust store error is sanitized and not retried."""
     result, transport, _ = run([TransportFailure("trust_store_unavailable")])
     assert "trust_store_unavailable" in str(result.public_summary())
     assert len(transport.calls) == 1

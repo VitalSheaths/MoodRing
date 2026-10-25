@@ -203,3 +203,14 @@ previous median 4.724 ms / p95 9.765 ms; path-checked median 4.761 ms / p95
 5.179 ms. These are environment-specific observations, not network latency or a
 production performance guarantee; the median difference was 0.037 ms. Windows
 system-store selection is mocked in tests, not validated on a Windows host.
+
+## Worker output trust boundary
+
+The current producer bounds its body before serializing private IPC. The parent
+checks the IPC ceiling after `communicate()` has collected stdout; this is not
+a streaming memory ceiling against a faulty or compromised worker. The process
+is a cancellation boundary, not a security sandbox. No provider-reachable bypass
+of the current producer bounds was established in review. If future scope
+requires independent containment, separately review capped incremental stdout
+draining with immediate termination on overflow and adversarial worker tests.
+This proposal is deferred and does not authorize broader worker privileges.
