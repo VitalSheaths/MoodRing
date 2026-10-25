@@ -1,0 +1,15 @@
+{
+  "schema_version": "universe-contract-v1",
+  "taxonomy_version": "synthetic-access-subset-v1",
+  "source_url": "https://www.sec.gov/search-filings/standard-industrial-classification-sic-code-list",
+  "captured_at": "2026-10-18T00:00:00Z",
+  "scope": "subset",
+  "codes": [
+    {
+      "schema_version": "universe-contract-v1",
+      "code": "7372",
+      "description": "SERVICES-PREPACKAGED SOFTWARE"
+    }
+  ],
+  "codes_sha256": "996dd603c2472fc2161191c35f0b8744221926d0a40148a8dde4540c4672a4da"
+}

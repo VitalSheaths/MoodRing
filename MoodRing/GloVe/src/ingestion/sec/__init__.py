@@ -1,1 +1,1 @@
-"""Versioned SEC contracts and offline validation; no network or database adapter."""
+"""SEC contracts and opt-in manual metadata access; imports perform no I/O."""
