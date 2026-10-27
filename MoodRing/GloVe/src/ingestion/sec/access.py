@@ -32,6 +32,18 @@ from ingestion.sec.transport import (
 )
 
 
+VALIDATION_REASONS = frozenset(
+    {
+        "limit_rows",
+        "invalid_schema",
+        "misaligned_arrays",
+        "invalid_json",
+        "duplicate_json_key",
+        "limit_result_bytes",
+    }
+)
+
+
 class AccessError(Exception):
     def __init__(self, code):
         """Store a fixed sanitized access failure code."""
@@ -81,6 +93,7 @@ class IssuerResult:
     receipt: Receipt | None = field(default=None, repr=False)
     sic: CurrentSic | None = field(default=None, repr=False)
     normalized: Result | None = field(default=None, repr=False)
+    validation_reason: str | None = None
 
     def public_summary(self):
         """Return sanitized counts and statuses without raw payloads or private receipt details."""
@@ -88,6 +101,13 @@ class IssuerResult:
             "issuer_ordinal": self.ordinal,
             "status": self.status,
             "code": self.code,
+            "validation_reason": (
+                self.validation_reason
+                if self.code == "invalid_metadata"
+                and type(self.validation_reason) is str
+                and self.validation_reason in VALIDATION_REASONS
+                else None
+            ),
             "attempts": self.attempts,
             "sic_status": self.sic.status if self.sic else "unavailable",
             "metadata": self.normalized.public_summary() if self.normalized else None,
@@ -366,7 +386,20 @@ def fetch_metadata(
                         exc.code,
                         attempts,
                     )
-                except (NormalizationError, ValueError, TypeError, ValidationError):
+                except NormalizationError as exc:
+                    reason = (
+                        exc.code
+                        if type(exc.code) is str and exc.code in VALIDATION_REASONS
+                        else None
+                    )
+                    result = IssuerResult(
+                        ordinal,
+                        "failed",
+                        "invalid_metadata",
+                        attempts,
+                        validation_reason=reason,
+                    )
+                except (ValueError, TypeError, ValidationError):
                     result = IssuerResult(
                         ordinal, "failed", "invalid_metadata", attempts
                     )

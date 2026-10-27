@@ -510,7 +510,9 @@ def test_unreviewed_issuer_and_future_taxonomy_fail_before_dispatch():
     u, t = inputs()
     t = t.model_copy(update={"captured_at": Clock().now() + timedelta(days=1)})
     with pytest.raises(AccessError, match="invalid_configuration"):
-        fetch_metadata(["123"], u, t, allow_network=True, user_agent=UA)
+        fetch_metadata(
+            ["123"], u, t, allow_network=True, user_agent=UA, clock=Clock().now
+        )
 
 
 def test_no_public_contact_body_header_stdout_or_stderr(caplog, capsys):
@@ -630,4 +632,74 @@ def test_trust_store_error_is_sanitized_and_not_retried():
     """Verify trust store error is sanitized and not retried."""
     result, transport, _ = run([TransportFailure("trust_store_unavailable")])
     assert "trust_store_unavailable" in str(result.public_summary())
+    assert len(transport.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [
+        "limit_rows",
+        "invalid_schema",
+        "misaligned_arrays",
+        "invalid_json",
+        "duplicate_json_key",
+        "limit_result_bytes",
+    ],
+)
+def test_allowlisted_validation_reason_survives_without_retry(monkeypatch, reason):
+    """Preserve only approved reason codes while retaining failed, nonretryable outcomes."""
+    from ingestion.sec import access
+    from ingestion.sec.normalization import NormalizationError
+
+    def reject(*args, **kwargs):
+        """Simulate a fixed internal normalizer failure without provider content."""
+        raise NormalizationError(reason)
+
+    monkeypatch.setattr(access, "normalize", reject)
+    result, transport, _ = run()
+    summary = result.public_summary()["issuers"][0]
+    assert summary["code"] == "invalid_metadata"
+    assert summary["validation_reason"] == reason
+    assert summary["status"] == "failed" and summary["metadata"] is None
+    assert len(transport.calls) == 1
+    assert result.public_summary()["durable_writes"] == 0
+
+
+@pytest.mark.parametrize("failure", ["normalizer", "value"])
+def test_unknown_validation_details_are_not_disclosed(
+    monkeypatch, failure, caplog, capsys
+):
+    """Never expose exception text or unapproved internal codes through diagnostics."""
+    from ingestion.sec import access
+    from ingestion.sec.normalization import NormalizationError
+
+    secret = "PRIVATE contact@example.invalid /private/path Authorization signed-url"
+
+    def reject(*args, **kwargs):
+        """Inject private exception content to verify the public disclosure boundary."""
+        raise NormalizationError(secret) if failure == "normalizer" else ValueError(
+            secret
+        )
+
+    monkeypatch.setattr(access, "normalize", reject)
+    result, transport, _ = run()
+    assert result.public_summary()["issuers"][0]["validation_reason"] is None
+    assert secret not in json.dumps(result.public_summary()) + repr(
+        result
+    ) + caplog.text + str(capsys.readouterr())
+    assert len(transport.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "body,reason",
+    [
+        (b"{", "invalid_json"),
+        (b'{"cik":"123","cik":"123"}', "duplicate_json_key"),
+        (b'{"cik":"123"}', "invalid_schema"),
+    ],
+)
+def test_actual_parser_failures_have_fixed_diagnostics(body, reason):
+    """Exercise decoder and schema failures with synthetic bytes only."""
+    result, transport, _ = run([response(body)])
+    assert result.public_summary()["issuers"][0]["validation_reason"] == reason
     assert len(transport.calls) == 1
