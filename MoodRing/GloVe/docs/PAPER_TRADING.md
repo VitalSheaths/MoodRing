@@ -1,5 +1,34 @@
 # Paper trading guide
 
+## Start here: disposable offline lesson
+
+After installing dependencies, run from `MoodRing/GloVe`:
+
+```bash
+PYTHONPATH=src python examples/api_smoke.py --self-contained
+```
+
+For a clean checkout, first run:
+
+```bash
+cd MoodRing/GloVe
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+PYTHONPATH=src python examples/api_smoke.py --self-contained
+```
+
+The eight numbered outcomes walk through readiness, scenarios, BUY/PASS, entry,
+refresh, exit, history and replay comparison. The helper supplies the local token,
+IDs, timestamps and idempotency keys. It starts its own loopback server, writes
+synthetic ledger records to temporary SQLite, then removes that owned ledger and
+stops the server. Installation may need package access; the lesson needs no
+external market data. Existing local ledgers are not modified.
+
+Use this first; the persistent server below is for learners who want to retain
+history and operate endpoints manually. The [capability index](CAPABILITIES.md)
+links executable workflows and isolated research/ingestion components.
+
 ## The learning workflow
 
 Create a scenario with starting cash, publish a timestamped prediction, and buy
@@ -16,7 +45,7 @@ one entry per signal. Stops and targets close the entire position at the next
 observed eligible price. There are no option legs, short selling, leverage,
 partial fills, partial exits or real broker orders in this release.
 
-## Run the offline API
+## Persistent local offline API
 
 From a clean checkout, Python 3.11, at the repository root:
 
@@ -63,7 +92,7 @@ its own temporary directory. CI runs this command alongside the existing demos.
 Alternatively run the server in the background and the smoke client in the **same**
 shell so that they inherit the same token. The script verifies offline readiness,
 creates two scenarios, publishes BUY/PASS signals, buys, refreshes, closes, verifies
-idempotency/history, and saves/compares two replay runs. It prints only summary IDs
+idempotency/history, and saves/compares two replay runs. It prints numbered learning outcomes plus summary IDs
 and counts. Each invocation creates new lesson records. It accepts only loopback
 HTTP, disables environment proxies/redirects, and refuses a non-offline server.
 
@@ -291,3 +320,26 @@ predictions is explicit/manual; there is no unattended model-training or trading
 agent loop. An optional `agent_id` on a trade attributes a future paper agent's
 order to the same ledger, rather than maintaining a second `agent_trades` balance
 that could diverge. Brokers are outside this implementation.
+
+## Token ownership and supported offline behavior
+
+There is no signup or token-issuing service. For a persistent server the local
+operator generates a secret, maps it to a user in `PAPER_API_USERS_JSON`, and gives
+the client that same secret through `PAPER_SMOKE_TOKEN` or Swagger Authorize.
+The token is a credential, not a public user ID; never commit it or share logs
+containing it. The disposable lesson generates an unrelated temporary secret
+automatically. Public provisioning requires separate identity/deployment design.
+
+Keep `PAPER_QUOTE_MODE=offline` for supported offline learning. AAPL, MSFT and NVDA
+have fixed synthetic prices: refresh updates marks but does not create a changing
+market. Use the paper demo or caller-supplied replay events for movement and P&L.
+Live quote mode is opt-in; failures are not replaced with synthetic quotes.
+
+The running `/openapi.json` and `/docs` are authoritative for HTTP contracts,
+including the endpoint order and returned-ID dependencies in the introduction.
+This guide owns executable commands; approved specifications own intended scope.
+SEC ingestion and synthetic universe jobs do not publish predictions or trades.
+Prediction publication accepts caller-supplied inputs and is not an automated
+research/model pipeline. SEC diagnostics remain separately reviewed in
+[PR #26](https://github.com/VitalSheaths/MoodRing/pull/26); another real smoke
+requires separate approval, and live metadata compatibility remains unproven.

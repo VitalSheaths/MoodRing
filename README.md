@@ -16,7 +16,7 @@ The current version is an API and an offline demo. A beginner dashboard and
 validated automated predictions are still planned. Market quotes may be delayed
 or unavailable; continuous real-time updates are not guaranteed.
 
-## Run locally
+## Start with the offline lesson
 
 From the repository root, using Python 3.11:
 
@@ -25,30 +25,24 @@ cd MoodRing/GloVe
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
-export PAPER_QUOTE_MODE=offline
-export PAPER_ENABLE_PRICE_CHECKER=false
-export PAPER_SMOKE_TOKEN="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
-export PAPER_API_USERS_JSON="$(python -c 'import json,os; print(json.dumps({os.environ["PAPER_SMOKE_TOKEN"]: "learner"}))')"
-PYTHONPATH=src python -m api.server
-```
-
-Open [API docs](http://127.0.0.1:8000/docs), click Authorize and enter your secret.
-Offline quotes are fixed synthetic lesson values, not current market prices.
-For a complete API smoke run and exact second-terminal commands, see the [usage guide](MoodRing/GloVe/docs/PAPER_TRADING.md).
-Keep the server local; public hosting is not supported yet.
-
-## Try the demo and tests
-
-With the same environment active:
-
-```bash
 PYTHONPATH=src python examples/api_smoke.py --self-contained
-PYTHONPATH=src python examples/paper_demo.py
-python -m pytest -q
 ```
 
-The demo works without internet access. Database integration tests need separate
-setup and skip by default; see the verification guide below.
+The helper prints eight numbered outcomes. It creates its own temporary local
+secret and SQLite ledger, supplies IDs/timestamps/idempotency keys, and cleans up
+its server and ledger afterward. No manual token setup or external data is needed
+after installation. Predictions are caller-supplied lesson examples, not model output.
+
+Offline quotes are fixed synthetic values for AAPL, MSFT and NVDA. Refresh does
+not simulate changing prices. Use replay or the paper demo to learn price movement
+and P&L. Offline mode remains a supported learning mode; a live provider failure
+never silently switches to synthetic prices.
+
+For persistent local server setup, local token ownership, manual `/docs` operation
+and demo/test commands, follow the [usage guide](MoodRing/GloVe/docs/PAPER_TRADING.md).
+There is no public signup or token-issuing service. Keep the server local.
+See the [capability index](MoodRing/GloVe/docs/CAPABILITIES.md) for what is executable,
+isolated, research-only or planned.
 
 ## Follow the project
 
