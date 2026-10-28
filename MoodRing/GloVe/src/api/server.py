@@ -102,6 +102,7 @@ def create_app(
     clock=None,
     quote_mode=None,
 ):
+    """Build the local simulator with explicit provider, authentication and checker state."""
     root = Path(__file__).resolve().parents[2]
     database_url = database_url or os.getenv(
         "PAPER_DATABASE_URL", f'sqlite:///{root / "resources/paper_trading.sqlite"}'
@@ -585,6 +586,7 @@ by replay and the paper demo, not by the fixed-quote refresh endpoint.
         return {"runs": service.compare_backtests(user, body.ids)}
 
     def openapi():
+        """Describe current routes with fresh timestamps for executable lesson examples."""
         # Fresh lesson timestamps each time /openapi.json is read, not stale literals.
         schema = get_openapi(
             title=app.title,

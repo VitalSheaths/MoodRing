@@ -29,6 +29,7 @@ def run_workflow(client, progress=None):
             progress(f"[{number}/8] {outcome}")
 
     def request(method, path, **kwargs):
+        """Require successful lesson responses without echoing payloads or secrets."""
         response = client.request(method, path, **kwargs)
         if response.status_code not in (200, 201):
             raise RuntimeError(
@@ -198,6 +199,7 @@ def self_contained(progress=None):
 
 
 def main():
+    """Run the disposable lesson or an explicitly configured loopback client."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
     parser.add_argument(
