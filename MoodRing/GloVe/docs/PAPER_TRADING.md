@@ -29,6 +29,25 @@ Use this first; the persistent server below is for learners who want to retain
 history and operate endpoints manually. The [capability index](CAPABILITIES.md)
 links executable workflows and isolated research/ingestion components.
 
+## Paper demo and tests
+
+From `MoodRing/GloVe`, with the installed Python environment active:
+
+```bash
+# Offline price movement, open-position marks and realized P&L
+PYTHONPATH=src python examples/paper_demo.py
+
+# Standard local test suite
+python -m pytest -q
+```
+
+The paper demo uses synthetic prices and persists its lesson history in
+`resources/demo_paper.sqlite`; repeated runs add scenarios to that ledger.
+Unlike the self-contained API lesson above, it does not remove its ledger.
+The standard tests need no external market data. Optional PostgreSQL integration
+tests require a disposable PostgreSQL server and skip when it is not configured;
+see the [verification guide](REVIEW_FIXES.md) for setup and commands.
+
 ## The learning workflow
 
 Create a scenario with starting cash, publish a timestamped prediction, and buy
