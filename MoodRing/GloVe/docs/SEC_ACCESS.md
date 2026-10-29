@@ -214,3 +214,20 @@ of the current producer bounds was established in review. If future scope
 requires independent containment, separately review capped incremental stdout
 draining with immediate termination on overflow and adversarial worker tests.
 This proposal is deferred and does not authorize broader worker privileges.
+
+## Sanitized validation diagnostics
+
+Issuer summaries now include nullable `validation_reason`. Only `limit_rows`,
+`invalid_schema`, `misaligned_arrays`, `invalid_json`, `duplicate_json_key` and
+`limit_result_bytes` pass through from `NormalizationError.code`; unapproved codes
+and generic exceptions produce null. The outer `invalid_metadata` failure code,
+limits, fail-closed behavior, attempts and no-persistence boundary are unchanged.
+No exception text or provider content is logged or published.
+
+The original Apple smoke reported only `invalid_metadata`; its internal reason
+was discarded, with no diagnostic log or response cache retained by this CLI.
+This change cannot recover that reason retrospectively or establish the original
+cause. Live metadata compatibility remains unproven. The original smoke is
+stopped; another request requires separate approval under the smoke plan. Do not
+increase limits, truncate arrays, infer publication timestamps or substitute SIC
+to force acceptance.
