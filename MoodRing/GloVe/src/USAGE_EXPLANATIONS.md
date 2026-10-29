@@ -1,3 +1,12 @@
+# Usage entry point
+
+Start with the [disposable offline API lesson](../docs/PAPER_TRADING.md#start-here-disposable-offline-lesson).
+It supplies its own token, IDs, timestamps and idempotency keys. Follow that guide
+for authoritative commands; use the [capability index](../docs/CAPABILITIES.md)
+to distinguish executable features from isolated research and planned work.
+
+## Legacy research descriptions
+
 > The calendar/analyzer class descriptions below are legacy design concepts and
 > are not implemented classes in this checkout. The implemented paper-trading
 > workflow and current file roles are documented in [the guide](../docs/PAPER_TRADING.md)

@@ -510,7 +510,9 @@ def test_unreviewed_issuer_and_future_taxonomy_fail_before_dispatch():
     u, t = inputs()
     t = t.model_copy(update={"captured_at": Clock().now() + timedelta(days=1)})
     with pytest.raises(AccessError, match="invalid_configuration"):
-        fetch_metadata(["123"], u, t, allow_network=True, user_agent=UA)
+        fetch_metadata(
+            ["123"], u, t, allow_network=True, user_agent=UA, clock=Clock().now
+        )
 
 
 def test_no_public_contact_body_header_stdout_or_stderr(caplog, capsys):

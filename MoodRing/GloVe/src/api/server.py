@@ -102,6 +102,7 @@ def create_app(
     clock=None,
     quote_mode=None,
 ):
+    """Build the local simulator with explicit provider, authentication and checker state."""
     root = Path(__file__).resolve().parents[2]
     database_url = database_url or os.getenv(
         "PAPER_DATABASE_URL", f'sqlite:///{root / "resources/paper_trading.sqlite"}'
@@ -177,10 +178,41 @@ def create_app(
                     await task
             engine.dispose()
 
+    from .errors import error_response
+
     app = FastAPI(
         title="MoodRing Paper Trading",
         version="0.2.0",
-        description="Work in progress. Local learning simulator; not production-ready. Static bearer authentication is unsuitable for public hosting.",
+        description="""Work in progress. Local learning simulator; not production-ready.
+
+## Start with the lesson
+Run `PYTHONPATH=src python examples/api_smoke.py --self-contained` after installing
+dependencies. It supplies temporary local authentication, IDs, timestamps and
+idempotency keys. See the repository usage guide for commands and the capability
+index for implemented versus planned features.
+
+## Manual endpoint order and ID dependencies
+1. Configure a local secret with `PAPER_API_USERS_JSON`, then **Authorize** using
+   that secret. There is no signup, public identity or token-issuing endpoint.
+2. `GET /ready`, then `POST /api/v1/scenarios`. Save the returned scenario `id`.
+3. `POST /api/v1/scenarios/{scenario_id}/signals` with caller-supplied prediction
+   inputs. This does not invoke a research model or SEC pipeline. Both BUY and
+   PASS decisions are stored; PASS does not authorize an entry.
+4. For BUY, submit the returned signal `id` as `signal_id` to
+   `POST /api/v1/paper-trading/trade` with an `Idempotency-Key`. Save `trade.id`.
+   Repeat the same key and payload only to replay that same entry; conflict is 409.
+5. Inspect scenario state, then `POST /api/v1/market/refresh`. Offline quotes for
+   AAPL, MSFT and NVDA are fixed synthetic values; refresh does not move prices.
+   Live provider failures are never silently replaced with synthetic quotes.
+6. `POST /api/v1/paper-trading/close/{trade_id}` with a distinct exit key. Replay
+   that key to retrieve the original close; a new key on a closed trade is 409.
+7. `GET /api/v1/scenarios/{scenario_id}/history` explains orders, fills and equity.
+   Replay runs use caller-supplied events; save their run IDs before comparison.
+
+Money and quantity responses use decimal strings. Static bearer authentication
+is unsuitable for public hosting. Offline price movement and P&L are demonstrated
+by replay and the paper demo, not by the fixed-quote refresh endpoint.
+""",
         lifespan=lifespan,
     )
     app.state.users, app.state.paper_trading_service = token_map, service
@@ -190,37 +222,24 @@ def create_app(
 
     @app.exception_handler(PaperTradingError)
     async def paper_error(request, exc):
-        return JSONResponse(
-            status_code=exc.status_code, content={"ok": False, "detail": str(exc)}
-        )
+        return error_response(exc.status_code, str(exc))
 
     @app.exception_handler(Exception)
     async def unexpected_error(request, exc):
         logger.error(
             "Local API operation failed", exc_info=(type(exc), exc, exc.__traceback__)
         )
-        return JSONResponse(
-            status_code=500,
-            content={"ok": False, "detail": "Local API operation failed"},
-        )
+        return error_response(500, "Local API operation failed")
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request, exc):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"ok": False, "detail": str(exc.detail)},
-            headers=exc.headers,
-        )
+        return error_response(exc.status_code, str(exc.detail), headers=exc.headers)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, exc):
         # Never echo invalid request bodies, auth headers or arbitrary user values.
-        return JSONResponse(
-            status_code=422,
-            content={
-                "ok": False,
-                "detail": "Request validation failed; check the OpenAPI schema",
-            },
+        return error_response(
+            422, "Request validation failed; check the OpenAPI schema"
         )
 
     def health_state():
@@ -567,6 +586,7 @@ def create_app(
         return {"runs": service.compare_backtests(user, body.ids)}
 
     def openapi():
+        """Describe current routes with fresh timestamps for executable lesson examples."""
         # Fresh lesson timestamps each time /openapi.json is read, not stale literals.
         schema = get_openapi(
             title=app.title,
