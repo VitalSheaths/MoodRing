@@ -179,3 +179,13 @@ Issue #15 reads existing job/evidence tables and PostgreSQL allocation metadata 
 read-only transactions, with no new persistent model. Retention planning is a pure
 inventory calculation and always proposes zero deletion bytes. See
 [measurement boundaries](CAPACITY_MEASUREMENTS.md) and [results](CAPACITY_RESULTS.md).
+
+## Offline explanation increment — 2026-11-01
+
+`Snapshot`, `Query`, `Card`, `ToolResult`, `Passage`, `Statement` and `Answer` in
+`src/explanation/contracts.py` are immutable presentation/query envelopes over
+existing `DailyObservation` and `SessionCalendar` objects, not persistence models.
+They bind owner, content hash, explicit session/cutoff, version, reconstruction
+mode, source revisions and missing reasons. Finite derived floats do not replace
+exact source prices. A/B statements require content evidence IDs; C statements
+cannot claim verified citations. See [full limits](EXPLANATION_BOT.md).

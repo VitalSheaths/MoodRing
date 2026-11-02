@@ -64,3 +64,13 @@ or acceptance evidence. Do not implement them while editing specifications.
 - Use a dedicated branch and focused commits, then PR, CI, review and approved merge.
   Report remaining work honestly; a document containing a requirement does not
   mean the requirement is implemented.
+
+## Offline explanation increment — 2026-11-01
+
+The requested first bot increment is synthetic and manually invoked. Keep tool
+permissions, cache, grades and evidence IDs independent of later model selection.
+Run the same golden suite for templates and candidate adapters and retain the
+template default until the [comparison gate](EXPLANATION_BOT.md#model-comparison-gate)
+passes. Golden synthetic results do not establish model quality or historical
+dataset acceptance. Existing source-access, review, deployment and trading gates
+continue to apply to those later increments.
