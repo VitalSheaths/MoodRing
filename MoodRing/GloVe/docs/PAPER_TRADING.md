@@ -48,6 +48,25 @@ The standard tests need no external market data. Optional PostgreSQL integration
 tests require a disposable PostgreSQL server and skip when it is not configured;
 see the [verification guide](REVIEW_FIXES.md) for setup and commands.
 
+## Offline explanation bot
+
+With the same installed environment, from `MoodRing/GloVe`:
+
+```bash
+PYTHONPATH=src python examples/explanation_demo.py
+PYTHONPATH=src python examples/explanation_demo.py --question "Explain RSI and MACD"
+PYTHONPATH=src python examples/explanation_demo.py --html /tmp/moodring-indicator-cards.html
+PYTHONPATH=src python -m explanation.evaluation
+python -m pytest -q tests/test_explanation.py
+```
+
+The HTML command creates a new standalone file and refuses to overwrite an
+existing one. Open it in a browser to inspect the cards. `--json` prints the full
+answer/evidence envelope. These commands generate fictional data in memory and
+make no provider or model requests. The example uses an explicit fictional
+instrument and historical session; changing question text does not select another
+instrument/date. See [supported questions and evidence grades](EXPLANATION_BOT.md).
+
 ## The learning workflow
 
 Create a scenario with starting cash, publish a timestamped prediction, and buy

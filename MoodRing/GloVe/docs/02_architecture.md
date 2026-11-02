@@ -81,3 +81,13 @@ and acknowledges enforcement gaps. Human approval is required before designing
 or introducing a new adapter, storage boundary or deployment layer.
 
 Related: [PRD](01_prd.md), [data contracts](03_data_models.md), [rules](04_rules.md).
+
+## Offline explanation increment — 2026-11-01
+
+`src/explanation/` provides supplied immutable synthetic market-contract views →
+owned bounded calculations/cache → curated keyword retrieval → deterministic
+statements → optional renderer adapter → validated answer. The template adapter
+is the default. A/B facts and citations cannot be rewritten by an adapter; optional
+C text is labelled unverified. Standalone HTML cards and CLI output share this
+contract. There is no API route, database, network transport, registry replacement
+or ledger connection. See [explanation contract](EXPLANATION_BOT.md).

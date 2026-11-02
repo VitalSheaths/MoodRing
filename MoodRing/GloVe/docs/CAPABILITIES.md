@@ -12,6 +12,7 @@ rather than treating this page as a second API reference.
 | Universe/market contracts and synthetic jobs | Library contracts, bounded fake orchestration, explicit PostgreSQL persistence and disposable measurement tools; not prediction publishers | [Synthetic demo](../examples/synthetic_market_demo.py), [ingestion modules](../src/ingestion/), [data specifications](03_data_models.md) |
 | Manual SEC access | Separate opt-in CLI; root metadata only, no downstream consumers or durable payload writes; live compatibility unproven after failed smoke | [SEC access](SEC_ACCESS.md), [approval plan](SEC_SMOKE_PLAN.md), [diagnostics PR](https://github.com/VitalSheaths/MoodRing/pull/26) |
 | Research modules | Features, models and macro workflows are not wired into automated API predictions or trades | [Research source](../src/), [architecture](02_architecture.md) |
+| Offline explanation bot | Synthetic indicator cards, bounded tools, templated answers and adapter interface; no real model or historical archive integration | [Bot contract](EXPLANATION_BOT.md), [starting research specification](RESEARCH_PROGRAMME.md) |
 | Public identity/deployment | Planned, separately reviewed; no signup, token issuer or supported public hosting | [Product scope](01_prd.md), [delivery gates](04_rules.md) |
 
 ## Source of truth

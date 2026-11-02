@@ -118,3 +118,17 @@ selection, live provider compatibility and large-scale persistence remain gated.
 Issue #15 adds [disposable capacity measurements and retention dry runs](CAPACITY_MEASUREMENTS.md).
 [Measured results](CAPACITY_RESULTS.md) require review before any scale increase;
 no production retention, index/schema change or provider integration is included.
+
+## Offline explanation increment — 2026-11-01
+
+Scope record: [issue #30](https://github.com/VitalSheaths/MoodRing/issues/30).
+The implementation and specification addenda remain under draft review.
+
+The user-selected no-LLM starting path adds a local synthetic indicator/evidence
+lesson: cards, templated answers, explicit missingness, bounded read-only tools,
+and a shared golden suite with a swappable renderer interface. This is an
+interactive explanation tool, not an autonomous agent. See
+[scope and limitations](EXPLANATION_BOT.md) and the
+[historical research starting specification](RESEARCH_PROGRAMME.md).
+Historical archives, validated model runs, results tracking and actual model
+comparison are subsequent increments. No model-generated trading input is added.
