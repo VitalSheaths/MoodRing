@@ -1,0 +1,7 @@
+# Offline preparation/forecasting only. Optional Torch tests use a separate CI job.
+# Exact run packets bind the versions actually used, not just these install ranges.
+numpy>=1.26,<3
+pandas>=2.2,<3
+pyarrow>=19,<24
+duckdb>=1.2,<2
+exchange-calendars>=4.11,<5

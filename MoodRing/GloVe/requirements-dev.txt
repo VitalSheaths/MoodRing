@@ -3,3 +3,5 @@ pytest>=8,<9
 httpx>=0.27,<0.28
 arch>=8,<9
 PyYAML>=6,<7
+
+-r requirements-research.txt
