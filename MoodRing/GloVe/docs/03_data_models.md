@@ -179,3 +179,13 @@ Issue #15 reads existing job/evidence tables and PostgreSQL allocation metadata 
 read-only transactions, with no new persistent model. Retention planning is a pure
 inventory calculation and always proposes zero deletion bytes. See
 [measurement boundaries](CAPACITY_MEASUREMENTS.md) and [results](CAPACITY_RESULTS.md).
+
+## Research explanation view
+
+Issue #34 introduces immutable in-memory ResearchRow/ResearchSnapshot views over
+externally approved train/dev artifacts, without database tables. Each anchor
+retains its row ID, historical reference cutoff, eight past context sessions,
+nullable descriptive values and source hashes. Loaded-at time is current receipt,
+not historical availability. This contract is separate from DailyObservation and
+strict PIT eligibility. ToolResult binds the declared data mode and limitations;
+missing values cannot be successful zero-valued measurements.
