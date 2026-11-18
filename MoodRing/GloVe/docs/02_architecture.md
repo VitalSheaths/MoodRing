@@ -81,3 +81,13 @@ and acknowledges enforcement gaps. Human approval is required before designing
 or introducing a new adapter, storage boundary or deployment layer.
 
 Related: [PRD](01_prd.md), [data contracts](03_data_models.md), [rules](04_rules.md).
+
+## Approved snapshot explanation boundary
+
+Issue #34 adds a separate ResearchSnapshot view and read-only evidence tool. An
+operator pins a descriptor digest; the loader verifies source hashes before
+reading only feature/context columns. The renderer receives authorized evidence,
+not file access or tool handles. The template adapter remains the default; no LLM
+transport is connected. A loopback-only preview is for local review, not public
+authentication or deployment. Existing HTTP/trading contracts remain unchanged.
+See [explanation contracts and limits](EXPLANATION_BOT.md).

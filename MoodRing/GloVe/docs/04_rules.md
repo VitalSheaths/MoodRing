@@ -64,3 +64,14 @@ or acceptance evidence. Do not implement them while editing specifications.
 - Use a dedicated branch and focused commits, then PR, CI, review and approved merge.
   Report remaining work honestly; a document containing a requirement does not
   mean the requirement is implemented.
+
+## Read-only educational answers
+
+For issue #34, authorize the owner and exact snapshot/stock/session before cache
+lookup. Verify externally pinned source bytes; reject cross-partition contexts,
+unknown selections and altered bindings. Grade A claims require a successful
+read-only tool result and exact supported text; every A/B citation must resolve.
+LLM renderers, if later authorized, cannot replace verified facts or evidence IDs.
+No future labels, final-test material, provider requests or trading mutations enter
+this view. Retrospective values must remain labelled as such. Curated explanations
+are not held-out solution cards; AI-authored tests do not establish human accuracy.

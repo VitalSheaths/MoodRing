@@ -118,3 +118,12 @@ selection, live provider compatibility and large-scale persistence remain gated.
 Issue #15 adds [disposable capacity measurements and retention dry runs](CAPACITY_MEASUREMENTS.md).
 [Measured results](CAPACITY_RESULTS.md) require review before any scale increase;
 no production retention, index/schema change or provider integration is included.
+
+## Read-only research education increment
+
+Issue #34 extends #30 with manually selected, approved train/development research
+snapshots. Indicator cards and deterministic answers explain values, calculations
+and missing evidence. This is not an autonomous agent: it cannot acquire sources,
+train models, schedule work or execute trades. Retrospective adjusted values do
+not establish historical knowability. Future labels, final-test features and model
+forecasts are excluded from this view. See [explanation bot](EXPLANATION_BOT.md).
