@@ -1,0 +1,177 @@
+{
+  "version": "research-lessons-v1",
+  "review_status": "AI-curated primary-source paraphrases; human review pending",
+  "retrieved_date": "2026-11-20",
+  "training_status": "no weight updates or API calls",
+  "entries": [
+    {
+      "key": "har",
+      "title": "Multi-horizon volatility persistence",
+      "url": "https://statmath.wu.ac.at/~hauser/LVs/FinEtricsQF/References/Corsi2009JFinEtrics_LMmodelRealizedVola.pdf",
+      "keywords": [
+        "har",
+        "persistence",
+        "weekly",
+        "monthly"
+      ],
+      "text": "Corsi combines volatility components over daily, weekly and monthly horizons in a compact forecasting model. This motivates testing several trailing risk horizons before adding model complexity. MoodRing daily squared-return averages are noisy proxies, not a replication of intraday realized variance. No improvement has been measured for these new features.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "qlike_proxy",
+      "title": "Loss functions and noisy volatility targets",
+      "url": "https://public.econ.duke.edu/~ap172/Patton_vol_proxies_JoE_2011.pdf",
+      "keywords": [
+        "qlike",
+        "proxy",
+        "variance",
+        "loss"
+      ],
+      "text": "Patton studies forecast rankings when volatility is observed through an imperfect proxy. QLIKE and variance squared error have useful robustness properties under stated proxy assumptions. This does not guarantee robust results for biased data or every finite sample. Compare positive variance forecasts on identical outcomes; report volatility errors separately and retain extreme events.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "signed_variation",
+      "title": "Positive and negative variation",
+      "url": "https://public.econ.duke.edu/~ap172/Patton_Sheppard_REStat_2015.pdf",
+      "keywords": [
+        "semivariance",
+        "negative",
+        "positive",
+        "asymmetry"
+      ],
+      "text": "Patton and Sheppard find different predictive information in positive and negative high-frequency return variation. Their results motivate separate downside and upside inputs. Daily signed squared-return averages are only an adaptation; they cannot identify intraday jumps. The words good and bad volatility describe return signs, not a safe or unsafe investment.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "ml_volatility",
+      "title": "ML and volatility persistence",
+      "url": "https://arxiv.org/html/2601.13014v1",
+      "keywords": [
+        "learning",
+        "neural",
+        "persistence",
+        "tuning"
+      ],
+      "text": "Christensen, Siggaard and Veliyev compare machine learning with HAR variants using intraday-based realized variance for Dow constituents. They report useful gains with limited tuning, including from persistence and additional predictors. Their measurement, sample and losses differ from MoodRing. This motivates a feature-family experiment, not a promise that a neural network will lower our QLIKE.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "commonality",
+      "title": "Pooling and common market variation",
+      "url": "https://arxiv.org/abs/2202.08962",
+      "keywords": [
+        "pooling",
+        "commonality",
+        "peers",
+        "market"
+      ],
+      "text": "Zhang and coauthors study pooled volatility learning with intraday information and market proxies, reporting gains and transfer to other stocks. A daily-data candidate is the mean trailing variance proxy of other eligible stocks. Its support count must remain visible, and it must exclude later cutoffs. It is a cohort statistic, not a broad-market index.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "master_scope",
+      "title": "What MASTER contributes",
+      "url": "https://arxiv.org/abs/2312.15235",
+      "keywords": [
+        "master",
+        "transformer",
+        "attention",
+        "stocks"
+      ],
+      "text": "MASTER models temporal and cross-stock relationships with market-guided feature selection for stock forecasting. Its return-ranking task is different from forecasting five-session variance. A risk adaptation needs positive outputs, correctly masked stock/date context and market inputs available at the cutoff. More stocks do not by themselves establish lower risk-forecast loss.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "exogenous",
+      "title": "Handling external predictors",
+      "url": "https://arxiv.org/abs/2402.19072",
+      "keywords": [
+        "timexer",
+        "exogenous",
+        "external",
+        "macro"
+      ],
+      "text": "TimeXer distinguishes the series being forecast from external predictors and uses attention to connect them. Its benchmark success is not stock-risk validation. Macro and news must first be aligned with their own release assumptions and missingness. A separate external-feature branch is a later hypothesis after simpler matched comparisons.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "survivorship",
+      "title": "Survivorship and exit data",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.1997.tb03818.x",
+      "keywords": [
+        "survivorship",
+        "survivor",
+        "delisting",
+        "universe"
+      ],
+      "text": "Shumway documents missing delisting returns and the bias they can create. Excluding future exits or choosing only firms successful today conditions history on later outcomes. A pre-2010 IPO rule controls listing age but does not remove that selection. Keep historical membership, merger and exit records; do not invent terminal returns when unavailable.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "rag",
+      "title": "Knowledge retrieval before fine-tuning",
+      "url": "https://arxiv.org/abs/2005.11401",
+      "keywords": [
+        "rag",
+        "retrieval",
+        "knowledge",
+        "training",
+        "gemini"
+      ],
+      "text": "Retrieval-augmented generation supplies relevant documents alongside a question instead of relying only on model memory. A source-linked local library can be updated without retraining weights. Retrieval can still return irrelevant evidence, so evaluate citations, abstention and answer correctness. Adding these summaries is knowledge curation, not Gemini fine-tuning.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "evidence_selection",
+      "title": "Relevant evidence matters",
+      "url": "https://arxiv.org/abs/2112.08688",
+      "keywords": [
+        "evidence",
+        "retriever",
+        "irrelevant",
+        "attribution"
+      ],
+      "text": "Asai and coauthors investigate whether retrieved passages actually support an answer. Their work motivates evaluating evidence selection separately from fluent generation. In MoodRing, a stock mentioned in an article is not automatically its subject, and generic headline tone is not company-specific sentiment. Unsupported conclusions should remain absent.",
+      "evidence_type": "primary_research",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "order_risk",
+      "title": "Order execution is not a guaranteed price",
+      "url": "https://syndication.finra.org/content/understanding-order-types-can-save-time-and-money",
+      "keywords": [
+        "stop",
+        "orders",
+        "slippage",
+        "execution"
+      ],
+      "text": "A stop order can become a market order when triggered, so its execution price can differ from the stop price during a gap or fast market. A limit controls the acceptable price but may remain unfilled. Indicator values and volatility estimates do not guarantee execution or cap losses. This lesson does not place orders.",
+      "evidence_type": "official_investor_education",
+      "not_measured_on_moodring": true
+    },
+    {
+      "key": "diversification",
+      "title": "Diversification and costs",
+      "url": "https://syndication.finra.org/content/financial-tips-new-investors",
+      "keywords": [
+        "diversification",
+        "fees",
+        "costs",
+        "concentration"
+      ],
+      "text": "Diversification spreads exposure across investments and can reduce dependence on a single company or sector. Owning many correlated large technology stocks is different from broad diversification. Costs can reduce net returns even when commissions are zero. A lower forecasting loss is not automatically a better after-cost portfolio outcome.",
+      "evidence_type": "official_investor_education",
+      "not_measured_on_moodring": true
+    }
+  ]
+}

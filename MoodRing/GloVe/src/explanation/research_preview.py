@@ -38,7 +38,7 @@ def render_page(bot, snapshots, ticker, session, question):
     if answer.status == 'unsupported_question':
         response = '<p>This question is outside the supported scope. Select the matching stock and session, then ask about an indicator or its limitations. No trading decision or future outcome is inferred.</p>'
     else:
-        selected = [p for p in answer.passages if p.key.startswith('dictionary:')]
+        selected = [p for p in answer.passages if p.key.startswith(('dictionary:', 'research:'))]
         selected = selected or list(answer.passages[:2])
         response = ''.join('<p>'+escape(p.text)+'</p>' for p in selected[:3])
     form = form[:-10] + '<div role="status"><h3>Template answer</h3>'+response+'</div></section>'

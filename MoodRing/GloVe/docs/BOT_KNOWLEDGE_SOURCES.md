@@ -37,3 +37,18 @@ can no longer pass by raising the fallback error string; explicit expected error
 retain their oracle. Function docstrings cover the previously undocumented test
 helpers, and HTML values use the same precision as answer statements. External
 acquisition remains a separate trust boundary from the read-only bot.
+
+## Research and investor-education supplement
+
+[research_lessons.json](../src/explanation/research_lessons.json) adds twelve
+source-linked paraphrases: HAR persistence, proxy-sensitive loss evaluation,
+signed variation, ML volatility forecasting, pooled commonality, MASTER,
+exogenous variables, survivorship, retrieval, evidence selection, order risk
+and diversification/costs. Each identifies its source and applicability limits.
+These are AI-curated explanations pending human review, not reproduced paper
+results, human-approved answers, held-out solutions or fine-tuning examples.
+
+The no-LLM retriever can serve these passages now. A future Gemini adapter can
+consume the same authorized evidence, while numeric tools remain authoritative.
+Adding a corpus does not train model weights. No model transport or paid fallback
+is introduced here. Compare retrieval and answer quality before choosing a model.
