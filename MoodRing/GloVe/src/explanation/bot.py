@@ -9,6 +9,7 @@ from .contracts import Answer, Passage, Query, Record, Statement, ToolResult
 from .knowledge import PASSAGES, retrieve
 from .tools import EvidenceTools
 from .dictionary import passages_for
+from .research_lessons import retrieve_lessons
 
 
 class AnswerContext(Record):
@@ -66,6 +67,8 @@ def _intent(question: str) -> str:
         return 'risk'
     if words.intersection({'missing', 'coverage', 'cutoff', 'revision', 'history', 'help'}):
         return 'coverage'
+    if retrieve_lessons(question):
+        return 'model'
     if passages_for(question):
         return 'cards'
     return 'unsupported'
@@ -99,9 +102,9 @@ class ExplanationBot:
         if (any(d != query.session.isoformat() for d in dates)
                 or known_mentions - {selected_symbol}
                 or symbols - {selected_symbol, 'RSI', 'MACD', 'ATR', 'OBV', 'EVT', 'GARCH', 'OHLCV', 'OHLC',
-                              'SQL', 'CPI', 'FRED', 'ALFRED', 'EMA', 'SMA', 'QLIKE'}):
+                              'SQL', 'CPI', 'FRED', 'ALFRED', 'EMA', 'SMA', 'QLIKE', 'HAR', 'RAG', 'MASTER', 'IPO', 'NLP', 'ML'}):
             intent = 'unsupported'
-        passages = retrieve(question)
+        passages = (*retrieve_lessons(question), *retrieve(question))
         dictionary = passages_for(question)
         passages = tuple(dict.fromkeys((*dictionary, *passages)))
         coverage = next(p for p in PASSAGES if p.key == 'coverage')

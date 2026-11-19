@@ -63,7 +63,7 @@ PASSAGES = (
         'Reference: https://ranaroussi.github.io/yfinance/advanced/price_adjustment.html')),
     Passage(key='chronological_validation', keywords=('validation', 'heldout', 'holdout', 'leakage', 'chronological'), text=(
         'Time-ordered validation trains on earlier observations and evaluates later ones. '
-        'Fit preprocessing and select parameters on development data only. Keep calibration '
+        'Fit preprocessing on training data only; select configurations on development data. Keep calibration '
         'separate from final testing, and remove training labels whose outcome windows '
         'overlap validation. A fixed gap is only sufficient when it covers the label horizon. '
         'MoodRing also prohibits deriving knowledge cards from held-out solutions. '
