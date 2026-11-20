@@ -64,3 +64,8 @@ class ExperimentTracker:
             except Exception:
                 continue
         return sorted(experiments, key=lambda x: str(x.get("timestamp")), reverse=True)
+
+    def lineage(self, *, read_only: bool = True):
+        """Metadata-only companion; existing experiment JSON is never rewritten."""
+        from utils.research_lineage import ResearchLineage
+        return ResearchLineage(self.storage_dir / "lineage", read_only=read_only)
